@@ -1,42 +1,41 @@
 # DESIGN.md — Eddy Barbershop
 
 > Sistem desain untuk website booking Eddy Barbershop, Kartasura, Sukoharjo.
-> Dibuat: 7 Oktober 2026 | Rombak total: ngikutin branding asli toko.
+> Dibuat: 7 Oktober 2026 | Revisi: ngikutin branding asli (hitam-emas, EST 2007).
 
 ---
 
 ## 0. Referensi Branding Asli
 
-Berdasarkan foto signage asli Eddy Barbershop Kleco (Kartasura):
-- Huruf **"EDDY"** besar warna **merah marun**
-- Tulisan **"BARBERSHOP & SHAVES"** warna **biru muda**
-- Background dinding **krem/kuning hangat**
-- Aksen **gunting kuning** + ilustrasi barber vintage berkumis
-- Motif garis merah-krem (barber pole vibes)
+Berdasarkan riset 7 Oktober 2026:
+- **Instagram @eddy.barbershop**: logo "EDDY BARBER SHOP EST 2007" — **hitam + emas**
+- Bio: "Tempat Cukur Pria & Anak 💈" — motto: **"Duduk Anteng, Pulang Ganteng"**
+- Buka setiap hari 10.00–23.00 WIB
+- WA: wa.me/6289664726691
+- Alamat: Jl. A. Yani No.402, Makamhaji, Kartasura, Sukoharjo 57161
+- Telp: +62 896-6472-6691
 
-Website HARUS terasa seperti perpanjangan toko aslinya, bukan brand lain.
+Website HARUS terasa seperti perpanjangan brand aslinya.
 
 ---
 
 ## 1. Filosofi Desain
 
-**"Vintage barbershop yang hidup"** — hangat, playful, autentik. Kayak masuk ke
-tokonya langsung: mural, warna berani, karakter kuat.
+**"Premium barbershop klasik"** — hitam pekat, aksen emas hemat, tipografi berani.
+Mewah tapi maskulin, bukan norak.
 
 ### Prinsip utama
-- **Warna berani, layout rapi.** Paletnya colorful tapi komposisinya terkontrol.
-- **Tipografi display sebagai identitas.** Huruf "EDDY" merah marun = logo visual.
-- **Tekstur & ilustrasi.** Sentuhan vintage: garis, pola barber pole, ilustrasi
-  gunting/pisau cukur. Jangan flat steril.
-- **Tetap fungsional.** Booking flow harus gampang dipakai ibu-ibu yang bookingin
-  anaknya, bukan cuma bagus dilihat.
+- **Tipografi sebagai hero.** Hierarki visual dari ukuran & berat huruf.
+- **Ruang napas.** Whitespace lega, jangan takut kosong.
+- **Emas itu bumbu.** Muncul hanya di titik fokus: 1 CTA, 1 divider, 1 highlight.
+- **Fungsional.** Booking flow gampang dipakai semua umur.
 
 ### Yang DILARANG (anti AI-slop)
 - ❌ Gradien ungu-biru atau gradien mencolok apapun
-- ❌ Tema hitam-emas mewah (itu bukan Eddy!)
 - ❌ Hero generik: teks di tengah + tombol + background blur
 - ❌ Card grid cookie-cutter yang monoton
 - ❌ Numbered circle stepper (1-2-3-4 dalam lingkaran)
+- ❌ Shadow tebal / neumorphism / glassmorphism berlebihan
 - ❌ Foto stock yang keliatan "stock"
 
 ---
@@ -45,16 +44,15 @@ tokonya langsung: mural, warna berani, karakter kuat.
 
 | Nama | Hex | Fungsi |
 |------|-----|--------|
-| Maroon Red | `#8b1e1e` | Primer: logo "EDDY", CTA utama, highlight |
-| Cream | `#f7f0dc` | Background utama |
-| Warm Yellow | `#f5c518` | Aksen: ikon gunting, badge, highlight kecil |
-| Sky Blue | `#7fb3d5` | Sekunder: sub-judul, link, info |
-| Charcoal | `#2b2b2b` | Teks utama |
-| Warm Grey | `#6b6b6b` | Teks sekunder |
-| Hairline | `#e0d5bd` | Divider 1px |
+| Charcoal Black | `#0a0a0a` | Background utama |
+| Deep Charcoal | `#141414` | Background sekunder / section alt |
+| Muted Gold | `#c9a227` | Aksen: CTA, divider, highlight — HEMAT |
+| Off-White | `#f5f2ea` | Teks utama |
+| Muted Grey | `#8a8a8a` | Teks sekunder / disabled |
+| Hairline | `#2a2a2a` | Divider 1px, border halus |
 
-**Aturan:** Background selalu krem hangat. Merah marun untuk hal penting (CTA,
-judul besar). Biru muda untuk info sekunder. Kuning untuk aksen playful kecil.
+**Aturan:** Maksimal 2 warna dominan per viewport (hitam + putih). Emas muncul hanya
+di titik fokus: 1 CTA, 1 divider, atau 1 highlight per section.
 
 ---
 
@@ -62,92 +60,94 @@ judul besar). Biru muda untuk info sekunder. Kuning untuk aksen playful kecil.
 
 | Peran | Style | Contoh pakai |
 |-------|-------|--------------|
-| Display | Bold condensed, uppercase, merah marun | "EDDY", judul section |
-| Sub-display | Sans bold, biru muda, uppercase | "BARBERSHOP & SHAVES" |
-| Heading | Sans bold, charcoal | Nama layanan, nama kapster |
-| Body | Sans regular, charcoal | Deskripsi, paragraf |
-| Label | Sans, uppercase, letter-spacing, small | "PILIH JADWAL" |
-| Harga | Bold, merah marun | Rp25.000 |
+| Display | Serif condensed / Bebas-style, bold, oversized | "EDDY", judul section |
+| Heading | Serif, semibold | Nama layanan, nama kapster |
+| Body | Sans grotesque, regular | Deskripsi, paragraf |
+| Label | Sans, uppercase, letter-spacing lebar, small | "PILIH JADWAL" |
+| Harga | Bold, emas `#c9a227` | Rp25.000 |
 
-**Bahasa:** Bahasa Indonesia, santai akrab. "Potong ganteng, harga bersahabat."
+**Bahasa:** Bahasa Indonesia. Tone: "Duduk Anteng, Pulang Ganteng."
 
 ---
 
-## 4. Layout
+## 4. Daftar Harga Asli (dari foto resmi toko)
+
+| Layanan | Harga |
+|---------|-------|
+| Potong Rambut | Rp25.000 |
+| Potong + Cuci + Pijat + Vit | Rp30.000 |
+| Botak & Kerok | Rp30.000 |
+| Semir Rambut | Rp35.000–150.000 |
+| High Light | Rp45.000 |
+| Bleaching Full | Rp50.000 |
+| Toning | Rp40.000 |
+| Pelurus Rambut | Rp45.000 |
+| Perming Keriting | Rp120.000–150.000 |
+| Keramas & Pijat | Rp10.000 |
+| Kerok Jenggot | Rp10.000 |
+| Hair Tattoo | Rp20.000–50.000 |
+| Creambath | Rp50.000 |
+
+> Catatan: ada pengumuman kenaikan harga (Sep 2026, berlaku sejak Mar 2025).
+> Konfirmasi ulang ke owner sebelum pitching.
+
+---
+
+## 5. Layout
 
 - **Mobile-first.** Mayoritas booking dari HP.
-- **Header dengan identitas kuat.** Logo "EDDY" merah marun selalu terlihat.
-- **Section dengan divider motif.** Garis merah-krem (barber pole strip) sebagai
-  pemisah section — ciri khas.
-- **Daftar layanan vertikal.** Nama besar, harga merah marun di kanan.
-- **Satu CTA dominan per layar.** Tombol merah marun, teks putih.
+- **Asimetris > simetris.** Hero nggak harus teks di tengah.
+- **Daftar vertikal > card grid** untuk layanan.
+- **Section title oversized.** Judul section besar kayak headline koran.
+- **Satu CTA dominan per layar.**
 
 ---
 
-## 5. Komponen
+## 6. Komponen
 
 ### Button
-- Primary: background merah marun `#8b1e1e`, teks putih/krem, radius sedang (8px).
-- Secondary: outline 1px marun, teks marun, background transparan.
+- Primary: background emas `#c9a227`, teks hitam, radius kecil (4px), uppercase.
+- Secondary: outline 1px emas, teks emas, background transparan.
 
 ### Input
-- Background putih, border 1px `#e0d5bd`, radius 8px, focus border marun.
+- Style underline (border-bottom 1px), label small caps di atas.
 
 ### Time Slot
-- Pill: available = outline marun; dipilih = fill marun teks putih;
-  booked = abu-abu strikethrough.
+- Pill minimal: available = outline emas tipis; booked = dimmed strikethrough.
 
 ### Progress (booking flow)
-- Bar tipis merah marun di atas (bukan lingkaran bernomor).
+- Garis tipis emas di atas (bukan lingkaran bernomor).
 
-### Badge/Tag
-- Background kuning `#f5c518`, teks charcoal — untuk "Promo", "Populer".
-
-### Ilustrasi
-- Ikon gunting, pisau cukur, barber pole — style line-art vintage, warna marun/kuning.
-- Boleh pakai motif garis diagonal merah-krem di background section tertentu.
+### Divider
+- Hairline 1px `#2a2a2a`.
 
 ---
 
-## 6. Halaman & Alur
+## 7. Halaman & Alur
 
 ### Landing
-1. Hero — "EDDY" raksasa merah marun + "BARBERSHOP & SHAVES" biru, CTA "Booking Sekarang"
-2. Layanan — list vertikal dengan harga merah marun
-3. Kapster — kartu foto dengan nama + spesialisasi
-4. Lokasi & Jam — Jl. A. Yani / Jl. Papagan, Makamhaji, Kartasura; Senin–Sabtu
-5. Footer — WhatsApp, Instagram, jam operasional
+1. Hero — "EDDY" oversized + "Duduk Anteng, Pulang Ganteng"
+2. Layanan — list vertikal dengan harga asli
+3. Kapster — kartu foto
+4. Lokasi & Jam — Jl. A. Yani No.402, buka tiap hari 10.00–23.00
+5. Footer — WA, IG @eddy.barbershop
 
 ### Booking (4 langkah)
-1. Pilih Layanan → list dengan harga
+1. Pilih Layanan → list + harga asli
 2. Pilih Kapster → kartu foto
-3. Pilih Jadwal → strip hari + slot pills
-4. Konfirmasi → ringkasan + input + tombol marun
+3. Pilih Jadwal → strip hari (7 hari, buka tiap hari!) + slot pills
+4. Konfirmasi → karcis reservasi + tombol "Konfirmasi via WhatsApp"
 
 ### Admin (rencana)
-- Tabel bersih, status dengan dot warna: 🟡 menunggu, 🟢 dikonfirmasi,
-  ✅ selesai, ⚪ batal.
+- Status booking dengan dot: 🟡 menunggu, 🟢 dikonfirmasi, ✅ selesai, ⚪ batal.
 
 ---
 
-## 7. Untuk AI Design Tools (Stitch, dll)
+## 8. Untuk AI Design Tools (Stitch, dll)
 
-Template prompt:
-
-> "Design for 'Eddy Barbershop', Kartasura Indonesia. Match the real shop branding:
-> big maroon-red 'EDDY' wordmark (#8b1e1e), light blue 'BARBERSHOP & SHAVES'
-> subtitle (#7fb3d5), warm cream background (#f7f0dc), yellow scissors accents
-> (#f5c518). Vintage playful barbershop style — barber pole stripes, retro
-> line-art illustrations, bold condensed typography. Avoid generic AI aesthetics:
-> no purple-blue gradients, no black-gold luxury theme, no centered-text hero.
-> Warm, authentic, fun. Bahasa Indonesia."
-
----
-
-## 8. Referensi Rasa
-
-**Barbershop vintage Amerika era 1950an** yang diterjemahkan ke konteks Jawa:
-mural warna-warni, huruf besar berani, pola barber pole — tapi layout modern
-dan mobile-friendly.
-
-Bukan: hitam-emas mewah, bukan dashboard SaaS, bukan template generik.
+> "Design for 'Eddy Barbershop' (EST 2007), Kartasura Indonesia. Premium classic
+> barbershop: charcoal black #0a0a0a background, muted gold #c9a227 accents used
+> sparingly, off-white #f5f2ea text. Bold condensed display typography. Tagline:
+> 'Duduk Anteng, Pulang Ganteng'. Avoid generic AI aesthetics: no purple-blue
+> gradients, no centered-text hero, no cookie-cutter card grids. Masculine,
+> refined, intentional. Bahasa Indonesia."
