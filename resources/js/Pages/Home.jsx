@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Button, Eyebrow, Icon, SectionHeading, TopBar, harga, isRange } from "../Components/ui";
 
 const FACILITIES = [
@@ -6,7 +7,47 @@ const FACILITIES = [
     { icon: "wifi", title: "Fast WiFi", note: "Anteng Menunggu" },
 ];
 
+/** Jam operasional (24 jam): buka 10.00 – tutup 23.00. */
+const JAM_BUKA = 10;
+const JAM_TUTUP = 23;
+
+/** Galeri contoh gaya potong — placeholder gradient, tanpa gambar eksternal. */
+const GALERI = [
+    { label: "Skin Fade", from: "from-neutral-200", to: "to-neutral-400" },
+    { label: "Pompadour", from: "from-amber-100", to: "to-amber-300" },
+    { label: "Buzz Cut", from: "from-slate-200", to: "to-slate-400" },
+    { label: "Classic Taper", from: "from-stone-200", to: "to-stone-400" },
+    { label: "Textured Crop", from: "from-zinc-200", to: "to-zinc-400" },
+    { label: "Korean Wave", from: "from-orange-100", to: "to-rose-200" },
+];
+
+const KONTAK = {
+    whatsapp: "6289664726691",
+    instagram: "eddy.barbershop",
+    telepon: "+6289664726691",
+};
+
+/**
+ * Status buka/tutup dihitung dari jam perangkat, disegarkan tiap menit.
+ * Mengembalikan { open, jam } — jam = label rentang operasional.
+ */
+function useJamOperasional() {
+    const compute = () => {
+        const h = new Date().getHours();
+        return h >= JAM_BUKA && h < JAM_TUTUP;
+    };
+    const [open, setOpen] = useState(compute);
+
+    useEffect(() => {
+        const id = setInterval(() => setOpen(compute()), 60_000);
+        return () => clearInterval(id);
+    }, []);
+
+    return { open, jam: "10.00 – 23.00 WIB" };
+}
+
 export default function Home({ services, barbers }) {
+    const { open, jam } = useJamOperasional();
     return (
         <div className="relative min-h-screen overflow-x-hidden bg-canvas pb-36">
             <AmbientGlow />
@@ -16,10 +57,14 @@ export default function Home({ services, barbers }) {
                 {/* HERO */}
                 <section className="py-8 text-center">
                     <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-hairline bg-white/70 px-3.5 py-1.5 shadow-sm backdrop-blur-xl">
-                        <span className="h-2 w-2 animate-pulse rounded-full bg-gold" />
-                        <span className="text-[11px] font-semibold text-ink">Buka Hari Ini</span>
-                        <span className="text-[11px] text-ink-mute">•</span>
-                        <span className="text-[11px] font-medium text-ink-soft">10.00 – 23.00 WIB</span>
+                        <span
+                            className={`h-2 w-2 rounded-full ${open ? "animate-pulse bg-gold" : "bg-ink-mute"}`}
+                        />
+                        <span className="text-xs font-semibold text-ink">
+                            {open ? "Buka Sekarang" : "Tutup"}
+                        </span>
+                        <span className="text-xs text-ink-mute" aria-hidden="true">•</span>
+                        <span className="text-xs font-medium text-ink-soft">{jam}</span>
                     </div>
 
                     <h1 className="font-display text-5xl uppercase leading-none tracking-wider text-ink sm:text-6xl">
@@ -27,7 +72,7 @@ export default function Home({ services, barbers }) {
                     </h1>
                     <p className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-ink-soft">
                         Duduk Anteng
-                        <span className="text-[10px] text-gold">◆</span>
+                        <span aria-hidden="true" className="text-[11px] text-gold-text">◆</span>
                         Pulang Ganteng
                     </p>
                     <p className="mx-auto mt-3 max-w-md text-[13px] leading-relaxed text-ink-soft">
@@ -52,7 +97,7 @@ export default function Home({ services, barbers }) {
                                     <Icon name={f.icon} size={18} />
                                 </div>
                                 <div className="text-xs font-semibold text-ink">{f.title}</div>
-                                <div className="mt-0.5 text-[10px] text-ink-mute">{f.note}</div>
+                                <div className="mt-0.5 text-[11px] text-ink-mute">{f.note}</div>
                             </div>
                         ))}
                     </div>
@@ -75,7 +120,7 @@ export default function Home({ services, barbers }) {
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-[15px] font-semibold text-ink">{s.name}</h3>
                                         {s.name === "Potong + Cuci + Pijat + Vit" && (
-                                            <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                                            <span className="rounded-full bg-black px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
                                                 Best Choice
                                             </span>
                                         )}
@@ -85,7 +130,7 @@ export default function Home({ services, barbers }) {
                                         <Icon name="schedule" size={14} className="text-gold" />± {s.duration_minutes} menit
                                     </span>
                                     {isRange(s) && (
-                                        <span className="mt-0.5 block text-[11px] italic text-gold">
+                                        <span className="mt-0.5 block text-[11px] italic text-gold-text">
                                             *harga tergantung panjang rambut
                                         </span>
                                     )}
@@ -104,15 +149,34 @@ export default function Home({ services, barbers }) {
                     <div className="space-y-3">
                         {barbers.map((b, i) => (
                             <div key={b.id} className="glass-card rounded-ios p-4 transition-transform hover:-translate-y-0.5">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="text-base font-semibold text-ink">{b.name}</h3>
-                                    {i === 0 && (
-                                        <span className="rounded-full bg-black px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                                            Pilihan Utama
-                                        </span>
+                                <div className="flex items-center gap-3.5">
+                                    {b.photo ? (
+                                        <img
+                                            src={b.photo}
+                                            alt={`Foto ${b.name}`}
+                                            loading="lazy"
+                                            className="h-14 w-14 shrink-0 rounded-2xl object-cover"
+                                        />
+                                    ) : (
+                                        <div
+                                            aria-hidden="true"
+                                            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-ink font-display text-xl uppercase tracking-wide text-gold"
+                                        >
+                                            {inisial(b.name)}
+                                        </div>
                                     )}
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-base font-semibold text-ink">{b.name}</h3>
+                                            {i === 0 && (
+                                                <span className="rounded-full bg-black px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
+                                                    Pilihan Utama
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="mt-0.5 text-xs font-semibold text-gold-text">{b.specialty}</div>
+                                    </div>
                                 </div>
-                                <div className="mt-0.5 text-xs font-semibold text-gold">{b.specialty}</div>
                                 <div className="mt-3 flex items-center gap-1.5 border-t border-black/[0.05] pt-2.5 text-[11px] text-ink-mute">
                                     <span className="h-1.5 w-1.5 rounded-full bg-gold" />
                                     Aktif melayani hari ini
@@ -156,6 +220,49 @@ export default function Home({ services, barbers }) {
                             <Icon name="map" size={17} className="text-gold" />
                             Buka Petunjuk Arah di Google Maps
                         </a>
+
+                        {/* Aksi kontak cepat */}
+                        <div className="grid grid-cols-3 gap-2.5 border-t border-black/[0.05] pt-3.5">
+                            <ContactAction
+                                href={`https://wa.me/${KONTAK.whatsapp}`}
+                                icon="chat"
+                                label="WhatsApp"
+                                external
+                            />
+                            <ContactAction
+                                href={`https://instagram.com/${KONTAK.instagram}`}
+                                icon="photo_camera"
+                                label="Instagram"
+                                external
+                            />
+                            <ContactAction href={`tel:${KONTAK.telepon}`} icon="call" label="Telepon" />
+                        </div>
+                    </div>
+                </section>
+
+                {/* GALERI HASIL POTONG */}
+                <section id="galeri" className="py-4">
+                    <SectionHeading
+                        eyebrow="Portofolio Gaya"
+                        title="Galeri Hasil Potong"
+                        note="Referensi gaya — tunjukkan ke kapster saat datang."
+                    />
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {GALERI.map((g) => (
+                            <div
+                                key={g.label}
+                                className="group relative overflow-hidden rounded-ios border border-black/[0.05] shadow-sm"
+                            >
+                                <div
+                                    aria-hidden="true"
+                                    className={`h-28 w-full bg-gradient-to-br ${g.from} ${g.to} transition-transform duration-300 group-hover:scale-[1.03] sm:h-32`}
+                                />
+                                <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                                <span className="absolute bottom-2 left-2.5 text-xs font-semibold uppercase tracking-wide text-white drop-shadow">
+                                    {g.label}
+                                </span>
+                            </div>
+                        ))}
                     </div>
                 </section>
 
@@ -194,6 +301,30 @@ export default function Home({ services, barbers }) {
     );
 }
 
+/** Ambil maksimal 2 inisial dari nama kapster (mis. "Mas Eddy" -> "ME"). */
+function inisial(name) {
+    return String(name || "")
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join("");
+}
+
+/** Tombol aksi kontak (WhatsApp / Instagram / telepon). */
+function ContactAction({ href, icon, label, external = false }) {
+    return (
+        <a
+            href={href}
+            {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            className="glass-card flex flex-col items-center gap-1.5 rounded-ios py-3 text-ink transition-all active:scale-[0.97] hover:bg-white"
+        >
+            <Icon name={icon} size={20} className="text-gold-text" />
+            <span className="text-[11px] font-semibold">{label}</span>
+        </a>
+    );
+}
+
 function InfoMini({ icon, label, value, note }) {
     return (
         <div className="flex items-start gap-2.5">
@@ -201,7 +332,7 @@ function InfoMini({ icon, label, value, note }) {
                 <Icon name={icon} size={16} />
             </div>
             <div>
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-ink-mute">{label}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-ink-mute">{label}</div>
                 <div className="text-[11px] text-ink-soft">{note}</div>
                 <div className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-ink">
                     {value}
@@ -258,7 +389,7 @@ function FloatingBar() {
                         >
                             <Icon name={it.icon} size={20} />
                             <span
-                                className={`mt-0.5 flex items-center gap-1 text-[9px] tracking-wider ${
+                                className={`mt-0.5 flex items-center gap-1 text-[11px] tracking-wider ${
                                     it.active ? "font-bold" : "font-medium"
                                 }`}
                             >

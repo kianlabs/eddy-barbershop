@@ -17,6 +17,29 @@ function groupSlots(slots) {
 
 const SESSION_ICON = { Pagi: "wb_sunny", "Siang & Sore": "sunny", Malam: "dark_mode" };
 
+const HARI_SINGKAT = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+const BULAN_SINGKAT = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+/** Susun 7 hari mulai dari hari ini (lokal) sebagai opsi cepat pemilih tanggal. */
+function buildWeekStrip(count = 7) {
+    const base = new Date();
+    base.setHours(0, 0, 0, 0);
+    return Array.from({ length: count }, (_, i) => {
+        const d = new Date(base);
+        d.setDate(base.getDate() + i);
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+            d.getDate()
+        ).padStart(2, "0")}`;
+        return {
+            iso,
+            dayShort: HARI_SINGKAT[d.getDay()],
+            dayNum: d.getDate(),
+            monthShort: BULAN_SINGKAT[d.getMonth()],
+            isWeekend: d.getDay() === 0,
+        };
+    });
+}
+
 export default function Booking({ services, barbers }) {
     const [step, setStep] = useState(1);
     const [serviceId, setServiceId] = useState("");
@@ -88,6 +111,13 @@ export default function Booking({ services, barbers }) {
         else setStep(step - 1);
     };
 
+    // Maju dari sticky bar — hanya bila prasyarat step terpenuhi.
+    const goNext = () => {
+        if (step === 1 && service) setStep(2);
+        else if (step === 2 && barber) setStep(3);
+        else if (step === 3 && startTime) setStep(4);
+    };
+
     return (
         <div className="relative min-h-screen overflow-x-hidden bg-canvas pb-40">
             <AmbientGlow />
@@ -156,7 +186,7 @@ export default function Booking({ services, barbers }) {
 
                 {step === 5 && result && <StepSukses result={result} />}
 
-                {step > 1 && step <= 4 && (
+                {step > 1 && step < 4 && (
                     <button
                         onClick={goBack}
                         className="mt-6 inline-flex items-center gap-1.5 text-sm text-ink-mute transition-colors hover:text-ink"
@@ -174,6 +204,7 @@ export default function Booking({ services, barbers }) {
                     date={date}
                     startTime={startTime}
                     onBack={goBack}
+                    onNext={goNext}
                 />
             )}
         </div>
@@ -204,7 +235,7 @@ function StepLayanan({ services, onPick }) {
                                 </h3>
                                 <p className="mt-0.5 text-[13px] leading-snug text-ink-soft">{s.description}</p>
                                 {isRange(s) && (
-                                    <span className="mt-1 block text-[11px] italic text-gold">
+                                    <span className="mt-1 block text-[11px] italic text-gold-text">
                                         *harga tergantung panjang rambut
                                     </span>
                                 )}
@@ -273,7 +304,7 @@ function StepKapster({ barbers, onPick }) {
                         <div className="flex items-start justify-between">
                             <div className="space-y-0.5">
                                 <h2 className="text-base font-bold tracking-tight text-ink">{b.name}</h2>
-                                <p className="text-xs font-semibold text-gold">{b.specialty}</p>
+                                <p className="text-xs font-semibold text-gold-text">{b.specialty}</p>
                             </div>
                             <RadioDot selected={false} />
                         </div>
@@ -293,6 +324,7 @@ function StepKapster({ barbers, onPick }) {
 /* ---------------- STEP 3: JADWAL ---------------- */
 function StepJadwal({ service, barber, date, setDate, todayStr, slots, loading, onPick }) {
     const groups = groupSlots(slots);
+    const week = buildWeekStrip(7);
     return (
         <section className="rise">
             <StepTitle no={3} title="Tentukan Waktu Kunjungan" />
@@ -305,8 +337,57 @@ function StepJadwal({ service, barber, date, setDate, todayStr, slots, loading, 
                     <Icon name="storefront" size={15} className="text-ink" />
                     Buka Setiap Hari: <strong className="font-semibold text-ink">10.00 – 23.00 WIB</strong>
                 </div>
-                <label className="eyebrow mb-1.5 block text-ink-mute">Pilih Tanggal</label>
+
+                {/* Pemilih cepat: strip 7 hari */}
+                <label className="eyebrow mb-2 block text-ink-mute">Pilih Cepat</label>
+                <div className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1">
+                    {week.map((d) => {
+                        const active = date === d.iso;
+                        return (
+                            <button
+                                key={d.iso}
+                                type="button"
+                                onClick={() => setDate(d.iso)}
+                                aria-pressed={active}
+                                className={`flex min-w-[56px] shrink-0 flex-col items-center rounded-2xl px-3 py-2.5 transition-all active:scale-95 ${
+                                    active
+                                        ? "bg-ink text-white shadow-md"
+                                        : "glass-card text-ink hover:bg-white"
+                                }`}
+                            >
+                                <span
+                                    className={`text-[11px] font-semibold uppercase tracking-wide ${
+                                        active ? "text-white/80" : "text-ink-mute"
+                                    }`}
+                                >
+                                    {d.dayShort}
+                                </span>
+                                <span className="tnum mt-0.5 font-display text-xl font-bold leading-none">
+                                    {d.dayNum}
+                                </span>
+                                <span
+                                    className={`mt-0.5 text-[11px] font-medium ${
+                                        active ? "text-white/70" : "text-ink-mute"
+                                    }`}
+                                >
+                                    {d.monthShort}
+                                </span>
+                                <span
+                                    aria-hidden="true"
+                                    className={`mt-1 h-1.5 w-1.5 rounded-full ${
+                                        active ? "bg-gold" : "bg-transparent"
+                                    }`}
+                                />
+                            </button>
+                        );
+                    })}
+                </div>
+
+                <label htmlFor="tanggal" className="eyebrow mb-1.5 block text-ink-mute">
+                    Atau Pilih Tanggal Lain
+                </label>
                 <input
+                    id="tanggal"
                     type="date"
                     min={todayStr}
                     value={date}
@@ -315,7 +396,23 @@ function StepJadwal({ service, barber, date, setDate, todayStr, slots, loading, 
                 />
             </div>
 
-            {date && loading && <p className="text-sm text-ink-soft">Memuat slot…</p>}
+            {date && loading && (
+                <div aria-hidden="true" className="glass-panel rounded-ios p-4">
+                    <div className="mb-3 flex items-center justify-between border-b border-black/5 pb-2">
+                        <div className="h-3 w-24 animate-pulse rounded-full bg-black/[0.07]" />
+                        <div className="h-3 w-16 animate-pulse rounded-full bg-black/[0.06]" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2.5">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="h-[42px] animate-pulse rounded-xl bg-black/[0.06]"
+                                style={{ animationDelay: `${i * 90}ms` }}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
             {date && !loading && slots.length === 0 && (
                 <p className="text-sm text-ink-soft">Tidak ada slot tersedia — tutup atau penuh.</p>
             )}
@@ -330,7 +427,7 @@ function StepJadwal({ service, barber, date, setDate, todayStr, slots, loading, 
                                         <Icon name={SESSION_ICON[session]} size={16} className="text-ink" />
                                         <span className="text-xs font-bold uppercase tracking-wider text-ink">{session}</span>
                                     </div>
-                                    <span className="text-[10px] font-semibold text-ink-mute">
+                                    <span className="text-[11px] font-semibold text-ink-mute">
                                         {times.length} Slot Tersedia
                                     </span>
                                 </div>
@@ -407,7 +504,7 @@ function StepKonfirmasi({
                             <div className="eyebrow text-ink-mute">Total Pembayaran</div>
                             <div className="mt-0.5 text-[11.5px] text-ink-mute">Bayar di kasir</div>
                             {isRange(service) && (
-                                <div className="mt-0.5 text-[11px] italic text-gold">
+                                <div className="mt-0.5 text-[11px] italic text-gold-text">
                                     *harga tergantung panjang rambut
                                 </div>
                             )}
@@ -564,9 +661,15 @@ function SummaryRow({ label, value, sub }) {
     );
 }
 
-/** Bar melayang bawah: ringkasan pilihan + tombol. */
-function StickySummary({ step, service, barber, date, startTime, onBack }) {
+/**
+ * Bar melayang bawah: ringkasan pilihan + tombol maju/mundur.
+ * `onNext` memajukan step; tombol nonaktif sampai prasyarat step terpenuhi
+ * (step 1 butuh layanan, step 2 butuh kapster, step 3 butuh jam).
+ */
+function StickySummary({ step, service, barber, date, startTime, onBack, onNext }) {
     const nextLabel = ["", "Lanjut Pilih Kapster", "Lanjut Pilih Jadwal", "Lanjut ke Konfirmasi", ""][step];
+    const canNext = step === 1 ? Boolean(service) : step === 2 ? Boolean(barber) : step === 3 ? Boolean(startTime) : false;
+
     return (
         <div className="fixed inset-x-0 bottom-0 z-50 pointer-events-none">
             <div className="mx-auto max-w-[720px] pointer-events-auto p-3">
@@ -581,7 +684,7 @@ function StickySummary({ step, service, barber, date, startTime, onBack }) {
                     </button>
                     <div className="flex min-w-0 flex-1 items-center justify-between gap-3 px-1">
                         <div className="min-w-0 flex-1">
-                            <div className="truncate text-[10px] font-semibold uppercase tracking-wide text-gold">
+                            <div className="truncate text-xs font-semibold uppercase tracking-wide text-gold-text">
                                 {service ? service.name : "Belum ada layanan dipilih"}
                                 {barber ? ` • ${barber.name}` : ""}
                             </div>
@@ -589,18 +692,28 @@ function StickySummary({ step, service, barber, date, startTime, onBack }) {
                                 {date && startTime ? (
                                     <>
                                         <span>{tanggalIndo(date)}</span>
-                                        <span className="text-gold">•</span>
+                                        <span className="text-gold-text" aria-hidden="true">•</span>
                                         <span className="tnum">{startTime} WIB</span>
                                     </>
                                 ) : (
                                     <span className="font-medium text-ink-soft">{nextLabel || "Lengkapi pilihan"}</span>
                                 )}
                             </div>
+                            {service && (
+                                <div className="tnum mt-0.5 truncate text-xs font-semibold text-ink">
+                                    {harga(service)}
+                                </div>
+                            )}
                         </div>
                         {step < 4 && (
-                            <div className="hidden shrink-0 rounded-xl bg-ink px-4 py-3 text-xs font-semibold text-white sm:block">
-                                {nextLabel}
-                            </div>
+                            <button
+                                type="button"
+                                onClick={onNext}
+                                disabled={!canNext}
+                                className="shrink-0 rounded-xl bg-ink px-4 py-3 text-xs font-semibold text-white transition-all active:scale-[0.97] hover:bg-black disabled:cursor-not-allowed disabled:opacity-45"
+                            >
+                                {canNext ? nextLabel : "Pilih dulu"}
+                            </button>
                         )}
                     </div>
                 </div>
