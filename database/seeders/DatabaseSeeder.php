@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $barbers = [
-            ["name" => "Raka Pratama", "specialty" => "Fade & Undercut"],
+            ["name" => "Raka Pratama", "specialty" => "Classic Cut & Undercut"],
             ["name" => "Dimas Saputra", "specialty" => "Classic Cut & Shave"],
             ["name" => "Bagas Wijaya", "specialty" => "Coloring & Styling"],
         ];
@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
 
         User::create([
             "name" => "Demo Pelanggan",
-            "email" => "demo@fadeco.test",
+            "email" => "demo@eddybarber.test",
             "whatsapp" => "6281234567890",
         ]);
     }

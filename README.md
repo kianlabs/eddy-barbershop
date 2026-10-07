@@ -1,7 +1,7 @@
-# Fade & Co. — Sistem Booking Barbershop
+# Eddy Barbershop — Sistem Booking Barbershop
 
 Project portfolio: aplikasi booking online untuk barbershop fiktif
-"Fade & Co." (Sleman, Yogyakarta). Dibangun dengan Laravel 13 + MySQL +
+"Eddy Barbershop" (Kartasura, Sukoharjo). Dibangun dengan Laravel 13 + MySQL +
 Inertia.js + React.
 
 ## Prasyarat
@@ -34,7 +34,7 @@ php artisan serve --port=8099
 Buka: http://127.0.0.1:8099 — landing di `/`, booking di `/booking`.
 
 ## Akun Demo
-Seeder membuat 1 user demo (`demo@fadeco.test`) + 3 kapster, 4 layanan,
+Seeder membuat 1 user demo (`demo@eddybarber.test`) + 3 kapster, 4 layanan,
 dan jadwal kerja Senin–Sabtu 09.00–21.00. Booking baru bisa dibuat langsung
 dari halaman `/booking` tanpa login (identifikasi via no. WhatsApp).
 

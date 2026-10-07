@@ -108,7 +108,7 @@ class BookingController extends Controller
 
                 $user = User::firstOrCreate(
                     ["whatsapp" => $data["whatsapp"]],
-                    ["name" => $data["name"], "email" => "wa".preg_replace("/[^0-9]/", "", $data["whatsapp"])."@fadeco.local"]
+                    ["name" => $data["name"], "email" => "wa".preg_replace("/[^0-9]/", "", $data["whatsapp"])."@eddybarber.local"]
                 );
 
                 return Booking::create([

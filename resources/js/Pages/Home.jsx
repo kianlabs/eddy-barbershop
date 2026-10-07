@@ -9,7 +9,7 @@ export default function Home({ services, barbers }) {
             <header className="border-b border-neutral-800">
                 <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
                     <div className="text-2xl font-black tracking-tight">
-                        FADE <span style={{ color: GOLD }}>&amp; CO.</span>
+                        EDDY <span style={{ color: GOLD }}>BARBERSHOP</span>
                     </div>
                     <Link
                         href="/booking"
@@ -24,7 +24,7 @@ export default function Home({ services, barbers }) {
             <main className="mx-auto max-w-5xl px-6">
                 <section className="py-20 text-center">
                     <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em]" style={{ color: GOLD }}>
-                        Barbershop — Sleman, Yogyakarta
+                        Barbershop — Kartasura, Sukoharjo
                     </p>
                     <h1 className="mb-6 text-5xl font-black leading-tight md:text-6xl">
                         Tampil Tajam,
@@ -89,7 +89,7 @@ export default function Home({ services, barbers }) {
                 </section>
 
                 <footer className="border-t border-neutral-800 py-10 text-center text-sm text-neutral-500">
-                    <p className="mb-1 font-bold text-neutral-300">FADE &amp; CO. — Sleman, Yogyakarta</p>
+                    <p className="mb-1 font-bold text-neutral-300">EDDY BARBERSHOP — Kartasura, Sukoharjo</p>
                     <p>Senin–Sabtu · 09.00–21.00 · Minggu tutup</p>
                 </footer>
             </main>

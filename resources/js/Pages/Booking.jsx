@@ -77,7 +77,7 @@ export default function Booking({ services, barbers }) {
             <header className="border-b border-neutral-800">
                 <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-5">
                     <Link href="/" className="text-xl font-black tracking-tight">
-                        FADE <span style={{ color: GOLD }}>&amp; CO.</span>
+                        EDDY <span style={{ color: GOLD }}>BARBERSHOP</span>
                     </Link>
                     <span className="text-sm text-neutral-400">Langkah {Math.min(step, 4)} dari 4</span>
                 </div>

@@ -1,4 +1,4 @@
-# PRD — Fade & Co. Barbershop Booking
+# PRD — Eddy Barbershop Booking
 
 > Project portfolio (fiktif): sistem booking online barbershop.
 > Stack: Laravel 13 + MySQL + Inertia + React. Tema: hitam–emas.
@@ -43,4 +43,4 @@ bookings   id, user_id FK, barber_id FK, service_id FK, date, start_time, end_ti
 - Slot tersedia = irisan jam kerja kapster & durasi layanan, minus booking
   berstatus `pending`/`confirmed`. Booking `cancelled`/`done` membebaskan slot.
 - Pelanggan diidentifikasi via no WA (`firstOrCreate`); email diisi placeholder
-  `wa<nomor>@fadeco.local` karena kolom email NOT NULL + unique.
+  `wa<nomor>@eddybarber.local` karena kolom email NOT NULL + unique.
