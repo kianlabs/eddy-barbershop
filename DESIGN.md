@@ -7,7 +7,7 @@
 
 ## 1. Filosofi Desain
 
-**"Quiet luxury barbershop"** — premium tapi nggak norak. Setiap elemen harus terasa
+**"Bright premium barbershop"** — terang, bersih, premium tapi nggak norak. Setiap elemen harus terasa
 _disengaja_, bukan hasil template.
 
 ### Prinsip utama
@@ -32,14 +32,14 @@ _disengaja_, bukan hasil template.
 
 | Nama | Hex | Fungsi |
 |------|-----|--------|
-| Charcoal Black | `#0a0a0a` | Background utama |
-| Deep Charcoal | `#141414` | Background sekunder / section alt |
-| Muted Gold | `#c9a227` | Aksen: CTA, divider, highlight — HEMAT |
-| Off-White | `#f5f2ea` | Teks utama |
-| Muted Grey | `#8a8a8a` | Teks sekunder / disabled |
-| Hairline | `#2a2a2a` | Divider 1px, border halus |
+| Warm White | `#faf8f3` | Background utama |
+| Pure White | `#ffffff` | Background kartu / section alt |
+| Deep Gold | `#a8842c` | Aksen: CTA, divider, highlight — HEMAT |
+| Charcoal | `#1a1a1a` | Teks utama |
+| Warm Grey | `#6b6b6b` | Teks sekunder / disabled |
+| Hairline | `#e5e0d5` | Divider 1px, border halus |
 
-**Aturan:** Maksimal 2 warna dominan per viewport (hitam + putih). Emas muncul hanya
+**Aturan:** Maksimal 2 warna dominan per viewport (putih + hitam). Emas muncul hanya
 di titik fokus: 1 CTA, 1 divider, atau 1 highlight per section.
 
 ---
@@ -72,8 +72,8 @@ di titik fokus: 1 CTA, 1 divider, atau 1 highlight per section.
 ## 5. Komponen
 
 ### Button
-- Primary: background emas `#c9a227`, teks hitam, radius kecil (4px), uppercase.
-- Secondary: outline 1px emas, teks emas, background transparan.
+- Primary: background emas `#a8842c`, teks putih, radius kecil (4px), uppercase.
+- Secondary: outline 1px emas `#a8842c`, teks emas, background transparan.
 - Jangan ada tombol gradien.
 
 ### Input
@@ -91,7 +91,7 @@ di titik fokus: 1 CTA, 1 divider, atau 1 highlight per section.
 - Hairline 1px `#2a2a2a`. Biarkan "garis rambut" sesuai tema barbershop.
 
 ### Foto
-- Hitam-putih atau tone warm gelap. Hindari foto terlalu terang/kontras stock.
+- Tone warm terang, natural light. Hindari foto yang keliatan stock (senyum palsu, studio putih).
 - Rasio: portrait untuk kapster, landscape wide untuk interior.
 
 ---
@@ -123,16 +123,17 @@ Saat generate mockup, selalu sertakan art direction ini di prompt:
 
 > "Avoid generic AI aesthetics: no purple-blue gradients, no centered-text hero,
 > no cookie-cutter card grids. Editorial magazine-style layout, strong typographic
-> hierarchy, generous whitespace, subtle grain texture. Palette: charcoal black
-> #0a0a0a, muted gold #c9a227 used sparingly, off-white #f5f2ea. Bahasa Indonesia."
+> hierarchy, generous whitespace, bright and airy. Palette: warm white #faf8f3
+> background, deep gold #a8842c used sparingly as accent, charcoal #1a1a1a text.
+> Bahasa Indonesia."
 
 ---
 
 ## 8. Referensi Rasa
 
-Bayangin perpaduan: **majalah fashion pria** (layout) + **buku appointment salon
-high-end** (booking flow) + **barbershop klasik** (detail: garis rambut, pola
-barber pole, tekstur handuk).
+Bayangin perpaduan: **majalah fashion pria edisi terang** (layout) + **buku appointment
+salon high-end** (booking flow) + **barbershop klasik yang bersih** (detail: garis
+rambut, pola barber pole, tekstur handuk).
 
 Bukan: template ThemeForest, bukan dashboard admin generik, bukan landing page
 startup.
