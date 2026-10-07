@@ -19,7 +19,7 @@ export function Icon({ name, className = "", filled = false, size = 20 }) {
     );
 }
 
-/** Label kecil uppercase berjarak lebar. */
+/** Label kecil uppercase berjarak lebar. Ukuran dari utility `.eyebrow` (12px). */
 export function Eyebrow({ children, className = "" }) {
     return (
         <span className={`eyebrow text-ink-mute ${className}`}>{children}</span>
@@ -77,7 +77,7 @@ export function TopBar({ onBack, showBack = true, right }) {
                     >
                         Eddy Barbershop
                     </a>
-                    <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold">
+                    <span className="mt-0.5 text-xs font-semibold uppercase tracking-widest text-gold-text">
                         Makamhaji, Sukoharjo
                     </span>
                 </div>
@@ -101,7 +101,7 @@ export function ProgressBar({ step, total = 4, label }) {
                 <div className="mb-2 flex items-center justify-between">
                     <span className="eyebrow text-ink">
                         Langkah {Math.min(step, total)} dari {total}
-                        {label ? <span className="text-gold"> · </span> : null}
+                        {label ? <span aria-hidden="true" className="text-gold-text"> · </span> : null}
                         {label ? (
                             <span className="font-normal text-ink-mute">
                                 {label}

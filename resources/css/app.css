@@ -13,16 +13,20 @@
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
     --font-display: 'Bebas Neue', ui-sans-serif, system-ui, sans-serif;
 
-    /* Aksen emas */
+    /* Aksen emas
+     * --color-gold (#c9a227) hanya untuk latar/tombol/ikon besar/dekorasi
+     * (tidak memenuhi WCAG AA sebagai teks kecil: 2.34:1 di atas kanvas).
+     * Teks emas kecil WAJIB pakai --color-gold-text (5.39:1 di atas kanvas). */
     --color-gold: #c9a227;
     --color-gold-light: #ecc246;
     --color-gold-dark: #b08d1e;
+    --color-gold-text: #8a6d12;
 
-    /* Netral Apple */
+    /* Netral Apple — semua >= 4.5:1 untuk teks kecil di atas kanvas */
     --color-ink: #1d1d1f;
     --color-ink-deep: #141416;
-    --color-ink-soft: #6e6e73;
-    --color-ink-mute: #86868b;
+    --color-ink-soft: #6e6e73; /* 4.81:1 */
+    --color-ink-mute: #6b6b70; /* 4.90:1 */
 
     /* Latar & permukaan */
     --color-canvas: #f8f9fb;
@@ -138,9 +142,9 @@
 }
 
 @layer utilities {
-    /* Label kecil uppercase berjarak lebar */
+    /* Label kecil uppercase berjarak lebar (teks informatif -> min 12px) */
     .eyebrow {
-        font-size: 0.6875rem;
+        font-size: 0.75rem;
         font-weight: 600;
         letter-spacing: 0.16em;
         text-transform: uppercase;
