@@ -1,7 +1,7 @@
 # DESIGN.md — Eddy Barbershop
 
 > Sistem desain untuk website booking Eddy Barbershop, Kartasura, Sukoharjo.
-> Dibuat: 7 Oktober 2026 | Tema: TERANG (keputusan final user).
+> Dibuat: 7 Oktober 2026 | Tema: PUTIH + EMAS LUXURY (varian B, keputusan final user).
 
 ---
 
@@ -14,20 +14,17 @@
 - Alamat: Jl. A. Yani No.402, Makamhaji, Kartasura, Sukoharjo 57161
 - Telp: +62 896-6472-6691
 
-> Keputusan desain: tema TERANG (light). Warna emas tetap dipakai sebagai aksen
-> premium, tapi di atas background terang.
-
 ---
 
 ## 1. Filosofi Desain
 
-**"Premium barbershop yang terang & bersih"** — kesan mewah tetap dapat lewat
-tipografi berani dan aksen emas, tapi overall terang, airy, ramah.
+**"White & gold luxury"** — putih bersih, aksen emas, kesan premium minimalis.
+Elegan, terang, modern.
 
 ### Prinsip utama
-- **Tipografi sebagai hero.** Hierarki visual dari ukuran & berat huruf.
-- **Ruang napas.** Whitespace lega, jangan takut kosong.
-- **Emas itu bumbu.** Aksen di titik fokus: CTA, divider, highlight.
+- **Putih dominan.** Background `#FFFFFF`, bersih dan lega.
+- **Emas sebagai aksen premium.** `#C9A227` untuk CTA, harga, highlight.
+- **Tipografi kuat.** Bebas Neue untuk judul, Plus Jakarta Sans untuk isi.
 - **Fungsional.** Booking flow gampang dipakai semua umur.
 
 ### Yang DILARANG (anti AI-slop)
@@ -37,6 +34,7 @@ tipografi berani dan aksen emas, tapi overall terang, airy, ramah.
 - ❌ Numbered circle stepper (1-2-3-4 dalam lingkaran)
 - ❌ Shadow tebal / neumorphism / glassmorphism berlebihan
 - ❌ Foto stock yang keliatan "stock"
+- ❌ Campur tema lain (krem+marun) — KONSISTEN putih+emas di semua halaman!
 
 ---
 
@@ -44,15 +42,15 @@ tipografi berani dan aksen emas, tapi overall terang, airy, ramah.
 
 | Nama | Hex | Fungsi |
 |------|-----|--------|
-| Warm White | `#faf8f3` | Background utama |
-| Pure White | `#ffffff` | Background kartu / section alt |
-| Deep Gold | `#a8842c` | Aksen: CTA, highlight — HEMAT |
-| Charcoal | `#1a1a1a` | Teks utama |
-| Warm Grey | `#6b6b6b` | Teks sekunder / disabled |
-| Hairline | `#e5e0d5` | Divider 1px, border halus |
+| Pure White | `#FFFFFF` | Background utama |
+| Off White | `#FAFAF8` | Background section alt / kartu |
+| Gold | `#C9A227` | Aksen: CTA, harga, highlight |
+| Charcoal | `#1A1A1A` | Teks utama |
+| Warm Grey | `#6B6B6B` | Teks sekunder / disabled |
+| Hairline | `#E8E4DA` | Divider 1px, border halus |
 
-**Aturan:** Background selalu terang. Emas dipakai hemat di titik fokus:
-1 CTA, 1 divider, atau 1 highlight per section.
+**Aturan:** Putih selalu dominan. Emas hanya di titik fokus: CTA, harga,
+atau 1 highlight per section. Jangan campur dengan marun/krem!
 
 ---
 
@@ -60,11 +58,11 @@ tipografi berani dan aksen emas, tapi overall terang, airy, ramah.
 
 | Peran | Style | Contoh pakai |
 |-------|-------|--------------|
-| Display | Serif condensed / Bebas-style, bold, oversized, charcoal | "EDDY", judul section |
-| Heading | Serif, semibold, charcoal | Nama layanan, nama kapster |
-| Body | Sans grotesque, regular, charcoal | Deskripsi, paragraf |
-| Label | Sans, uppercase, letter-spacing lebar, small, grey | "PILIH JADWAL" |
-| Harga | Bold, deep gold `#a8842c` | Rp25.000 |
+| Display | Bebas Neue, oversized, charcoal | "EDDY", judul section |
+| Heading | Plus Jakarta Sans Bold, charcoal | Nama layanan, nama kapster |
+| Body | Plus Jakarta Sans Regular, charcoal | Deskripsi, paragraf |
+| Label | Plus Jakarta Sans, uppercase, letter-spacing, small, grey | "PILIH JADWAL" |
+| Harga | Plus Jakarta Sans Bold, gold `#C9A227` | Rp25.000 |
 
 **Bahasa:** Bahasa Indonesia. Tone: "Duduk Anteng, Pulang Ganteng."
 
@@ -96,48 +94,47 @@ tipografi berani dan aksen emas, tapi overall terang, airy, ramah.
 ## 5. Layout
 
 - **Mobile-first.** Mayoritas booking dari HP.
-- **Asimetris > simetris.** Hero nggak harus teks di tengah.
-- **Daftar vertikal > card grid** untuk layanan.
-- **Section title oversized.** Judul section besar kayak headline koran.
-- **Satu CTA dominan per layar.**
+- **Bersih & minimalis.** Banyak whitespace, elemen sedikit tapi tepat.
+- **Daftar vertikal** untuk layanan.
+- **Satu CTA dominan per layar.** Tombol emas, teks putih/hitam.
 
 ---
 
 ## 6. Komponen
 
 ### Button
-- Primary: background deep gold `#a8842c`, teks putih, radius 8px, uppercase.
+- Primary: background gold `#C9A227`, teks putih, radius 8px, uppercase.
 - Secondary: outline 1px gold, teks gold, background transparan.
 
 ### Input
-- Background putih, border 1px `#e5e0d5`, radius 8px, focus border gold.
+- Background putih, border 1px `#E8E4DA`, radius 8px, focus border gold.
 
 ### Time Slot
 - Pill: available = outline gold tipis; dipilih = fill gold teks putih;
-  booked = abu-abu strikethrough.
+  booked = abu-abu strikethrough (kontras cukup!).
 
 ### Progress (booking flow)
-- Bar tipis gold di atas (bukan lingkaran bernomor).
+- Bar tipis gold di atas.
 
 ### Badge
-- Background gold muda, teks charcoal — untuk "Populer", "Promo".
+- Background gold `#C9A227`, teks putih — untuk "Populer", "Promo".
 
 ---
 
 ## 7. Halaman & Alur
 
 ### Landing
-1. Hero — "EDDY" oversized + "Duduk Anteng, Pulang Ganteng"
-2. Layanan — list vertikal dengan harga asli
-3. Kapster — kartu foto
+1. Hero — "EDDY" Bebas Neue oversized + "Duduk Anteng, Pulang Ganteng"
+2. Layanan — list vertikal dengan harga asli (emas)
+3. Kapster — kartu putih bersih
 4. Lokasi & Jam — Jl. A. Yani No.402, buka tiap hari 10.00–23.00
-5. Footer — WA, IG @eddy.barbershop
+5. Footer — WA +62 896-6472-6691, IG @eddy.barbershop
 
 ### Booking (4 langkah)
-1. Pilih Layanan → list + harga asli
+1. Pilih Layanan → list + harga emas
 2. Pilih Kapster → kartu foto
-3. Pilih Jadwal → strip hari (7 hari!) + slot pills
-4. Konfirmasi → karcis reservasi + tombol "Konfirmasi via WhatsApp"
+3. Pilih Jadwal → strip 7 hari (buka tiap hari!) + slot pills
+4. Konfirmasi → ringkasan + tombol emas "Konfirmasi via WhatsApp"
 
 ### Admin (rencana)
 - Status booking dengan dot: 🟡 menunggu, 🟢 dikonfirmasi, ✅ selesai, ⚪ batal.
@@ -146,9 +143,10 @@ tipografi berani dan aksen emas, tapi overall terang, airy, ramah.
 
 ## 8. Untuk AI Design Tools (Stitch, dll)
 
-> "Design for 'Eddy Barbershop' (EST 2007), Kartasura Indonesia. LIGHT theme:
-> warm white #faf8f3 background, deep gold #a8842c accents used sparingly,
-> charcoal #1a1a1a text. Bold condensed display typography, generous whitespace,
-> bright and airy. Tagline: 'Duduk Anteng, Pulang Ganteng'. Avoid generic AI
-> aesthetics: no purple-blue gradients, no dark mode, no centered-text hero,
-> no cookie-cutter card grids. Premium but approachable. Bahasa Indonesia."
+> "Design for 'Eddy Barbershop' (EST 2007), Kartasura Indonesia. LIGHT LUXURY
+> theme: pure white #FFFFFF background, gold #C9A227 accents, charcoal #1A1A1A
+> text. Minimalist, elegant, generous whitespace. Typography: Bebas Neue for
+> headlines, Plus Jakarta Sans for body. Tagline: 'Duduk Anteng, Pulang Ganteng'.
+> IMPORTANT: use ONLY this white+gold palette on every screen — no cream, no
+> maroon, no dark mode. Avoid generic AI aesthetics: no purple-blue gradients,
+> no centered-text hero, no cookie-cutter card grids. Bahasa Indonesia."
