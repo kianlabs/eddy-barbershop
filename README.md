@@ -17,8 +17,8 @@ npm install
 
 # 2. Konfigurasi database — salin .env.example lalu isi:
 #    DB_CONNECTION=mysql, DB_HOST=127.0.0.1, DB_PORT=3306,
-#    DB_DATABASE=fadeco_booking, DB_USERNAME=fadeco
-#    DB_PASSWORD=<lihat ~/.fade-co-db-pw di PC ini>
+#    DB_DATABASE=eddy_barber_booking, DB_USERNAME=eddy_barber
+#    DB_PASSWORD=<lihat ~/.eddy-barber-db-pw di PC ini>
 cp .env.example .env
 php artisan key:generate
 
