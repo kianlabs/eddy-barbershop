@@ -1,2 +1,5 @@
 User-agent: *
 Disallow:
+
+# Service worker tidak perlu diindeks.
+Disallow: /sw.js

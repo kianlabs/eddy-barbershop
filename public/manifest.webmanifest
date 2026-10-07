@@ -1,0 +1,30 @@
+{
+    "id": "/",
+    "name": "Eddy Barbershop",
+    "short_name": "Eddy Barber",
+    "description": "Booking jadwal potong rambut online di Eddy Barbershop, Makamhaji, Kartasura, Sukoharjo. Duduk anteng, pulang ganteng.",
+    "lang": "id",
+    "dir": "ltr",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
+    "orientation": "portrait",
+    "theme_color": "#c9a227",
+    "background_color": "#f8f9fb",
+    "categories": ["lifestyle", "business"],
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ]
+}
