@@ -1,5 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Eyebrow, Icon, ProgressBar, TopBar, harga, isRange, tanggalIndo, todayISO } from "../Components/ui";
+import {
+    ALAMAT,
+    Button,
+    Eyebrow,
+    Icon,
+    KONTAK,
+    ProgressBar,
+    TopBar,
+    harga,
+    isRange,
+    normalizeWa,
+    tanggalIndo,
+    todayISO,
+} from "../Components/ui";
 
 const API = "/api";
 
@@ -317,7 +330,14 @@ export default function Booking({ services, barbers }) {
                     />
                 )}
 
-                {step === 5 && result && <StepSukses result={result} anonymizeBarber={isAnyBarber} />}
+                {step === 5 && result && (
+                    <StepSukses
+                        result={result}
+                        name={name}
+                        whatsapp={whatsapp}
+                        anonymizeBarber={isAnyBarber}
+                    />
+                )}
 
                 {step > 1 && step < 4 && (
                     <button
@@ -745,6 +765,19 @@ function StepKonfirmasi({
                         <Icon name="chat" size={20} className="text-confirmed" />
                         {submitting ? "Memproses…" : "Konfirmasi via WhatsApp"}
                     </button>
+
+                    <a
+                        href={`https://wa.me/${normalizeWa(KONTAK.whatsapp)}?text=${encodeURIComponent(
+                            "Halo Eddy Barbershop, saya ingin bertanya tentang jadwal dan layanan."
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Hubungi Eddy Barbershop via WhatsApp"
+                        className="glass-card flex min-h-[48px] w-full items-center justify-center gap-2 rounded-ios px-5 text-sm font-semibold tracking-wide text-ink transition-all duration-150 hover:bg-white active:scale-[0.98]"
+                    >
+                        <Icon name="support_agent" size={20} className="text-ink-soft" />
+                        Hubungi via WhatsApp
+                    </a>
                 </form>
             </div>
         </section>
@@ -752,7 +785,43 @@ function StepKonfirmasi({
 }
 
 /* ---------------- STEP 5: SUKSES ---------------- */
-function StepSukses({ result, anonymizeBarber = false }) {
+
+/**
+ * Susun pesan konfirmasi booking untuk dikirim via wa.me.
+ * Nomor kapster TIDAK dicantumkan bila `anonymizeBarber` (mode acak),
+ * karena kapster baru ditentukan saat pelanggan datang.
+ */
+function buildWaMessage({ result, name, whatsapp, anonymizeBarber }) {
+    const jam = String(result?.start_time ?? "").slice(0, 5);
+    const lines = [
+        "*Eddy Barbershop — Konfirmasi Booking*",
+        `Nama Pemesan: ${name || "-"}`,
+        `No. WhatsApp: ${whatsapp || "-"}`,
+        `Layanan: ${result?.service?.name || "-"}`,
+    ];
+    if (anonymizeBarber) {
+        lines.push("Kapster: ditentukan saat datang");
+    } else if (result?.barber?.name) {
+        lines.push(`Kapster: ${result.barber.name}`);
+    }
+    lines.push(
+        `Tanggal: ${result?.date ? tanggalIndo(result.date) : "-"}`,
+        `Jam: ${jam ? `${jam} WIB` : "-"}`,
+        `Total: ${harga(result?.service)}`,
+        `Alamat: ${ALAMAT}`,
+        "Catatan: Tunjukkan pesan ini saat datang.",
+    );
+    return lines.join("\n");
+}
+
+function StepSukses({ result, name = "", whatsapp = "", anonymizeBarber = false }) {
+    const waNumber = normalizeWa(whatsapp);
+    const waHref = waNumber
+        ? `https://wa.me/${waNumber}?text=${encodeURIComponent(
+              buildWaMessage({ result, name, whatsapp, anonymizeBarber })
+          )}`
+        : null;
+
     return (
         <section className="rise py-10 text-center">
             <div className="glass-card mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full">
@@ -771,7 +840,26 @@ function StepSukses({ result, anonymizeBarber = false }) {
                     Kapster akan ditentukan saat Anda tiba — Anda akan dilayani oleh kapster yang siap lebih dulu.
                 </p>
             )}
-            <Button as="a" href="/" variant="secondary" className="mt-10">
+
+            {waHref && (
+                <div className="mx-auto mt-8 max-w-md">
+                    <a
+                        href={waHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Kirim ringkasan booking ke WhatsApp saya"
+                        className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-ios bg-ink px-5 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-150 hover:bg-black active:scale-[0.98]"
+                    >
+                        <Icon name="chat" size={20} className="text-confirmed" />
+                        Kirim ke WhatsApp
+                    </a>
+                    <p className="mt-2 text-[11.5px] leading-relaxed text-ink-soft">
+                        Simpan pesan ini sebagai bukti booking — tunjukkan saat datang.
+                    </p>
+                </div>
+            )}
+
+            <Button as="a" href="/" variant="secondary" className="mt-8">
                 Kembali ke Beranda
             </Button>
         </section>
