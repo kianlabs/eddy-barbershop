@@ -1,0 +1,13 @@
+.git
+.kilo
+.playwright-mcp
+node_modules
+vendor
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+storage/logs
+database/database.sqlite
+tests
+.env
+.env.*
