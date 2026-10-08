@@ -27,4 +27,19 @@ class Booking extends Model
     {
         return $this->belongsTo(Service::class);
     }
+
+    /**
+     * Hook model event (append-only, Gap 3).
+     *
+     * Memicu notifikasi booking baru ke owner TANPA menyentuh controller
+     * (Api\BookingController dihindari demi menghindari konflik dengan sesi
+     * lain). Karena listener bersifat fire-and-forget, kegagalan notifikasi
+     * tidak pernah menggagalkan pembuatan booking.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Booking $booking) {
+            app(\App\Listeners\SendNewBookingNotification::class)->handle($booking);
+        });
+    }
 }

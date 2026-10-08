@@ -163,7 +163,16 @@ export default function Bookings({ bookings, filters, barbers, statuses }) {
                                             <StatusPill status={b.status} />
                                         </td>
                                         <td className="px-3.5 py-3">
-                                            <StatusActions booking={b} onChange={changeStatus} align="right" />
+                                            <div className="flex flex-col items-end gap-1.5">
+                                                <Link
+                                                    href={`/admin/bookings/${b.id}`}
+                                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold-text hover:underline"
+                                                >
+                                                    <Icon name="visibility" size={13} />
+                                                    Detail
+                                                </Link>
+                                                <StatusActions booking={b} onChange={changeStatus} align="right" />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -216,7 +225,14 @@ export default function Bookings({ bookings, filters, barbers, statuses }) {
                                     </span>
                                 </div>
 
-                                <div className="mt-3">
+                                <div className="mt-3 flex items-center justify-between border-t border-hairline pt-2.5">
+                                    <Link
+                                        href={`/admin/bookings/${b.id}`}
+                                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-gold-text hover:underline"
+                                    >
+                                        <Icon name="visibility" size={14} />
+                                        Lihat Detail Lengkap
+                                    </Link>
                                     <StatusActions booking={b} onChange={changeStatus} />
                                 </div>
                             </li>

@@ -97,7 +97,7 @@ async function fetchAllSlots(serviceId, date) {
         }
 
         // Bila hanya union slot (tanpa pemetaan kapster), slot tetap bisa dipilih;
-        // pemilihan kapster konkret ditentukan backend/ di titik booking.
+        // pemilihan kapster konkret ditentukan backend di titik booking.
         return { barbersByTime: {}, slots: [...data.slots].sort() };
     } catch {
         return null;

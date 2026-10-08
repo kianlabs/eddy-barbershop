@@ -47,10 +47,55 @@ class ServiceController extends Controller
         );
     }
 
+    /** Tambah layanan baru (default aktif). */
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $this->validated($request);
+
+        $service = Service::create($data + ["is_active" => true]);
+
+        return back()->with("success", "Layanan \"{$service->name}\" ditambahkan.");
+    }
+
     public function update(Request $request, Service $service): RedirectResponse
     {
-        $data = $request->validate([
-            "name" => ["required", "string", "min:2", "max:100", Rule::unique("services", "name")->ignore($service->id)],
+        $service->update($this->validated($request, $service));
+
+        return back()->with("success", "Layanan \"{$service->name}\" diperbarui.");
+    }
+
+    /**
+     * Hapus layanan.
+     *
+     * Menolak bila layanan masih dipakai booking. FK `bookings.service_id`
+     * memakai cascadeOnDelete, sehingga hard-delete akan ikut menghapus riwayat
+     * booking — tidak diinginkan karena itu data transaksi. Riwayat harga pun
+     * ikut hilang karena harga disimpan di baris service.
+     */
+    public function destroy(Service $service): RedirectResponse
+    {
+        if ($service->bookings()->exists()) {
+            return back()->withErrors([
+                "service" => "Layanan \"{$service->name}\" tidak bisa dihapus karena masih dipakai {$service->bookings()->count()} booking. Nonaktifkan saja.",
+            ]);
+        }
+
+        $name = $service->name;
+        $service->delete();
+
+        return back()->with("success", "Layanan \"{$name}\" dihapus.");
+    }
+
+    /**
+     * Aturan validasi layanan — dipakai bersama store() dan update().
+     * Unik-nama mengabaikan baris yang sedang diubah.
+     *
+     * @return array<string, mixed>
+     */
+    private function validated(Request $request, ?Service $service = null): array
+    {
+        return $request->validate([
+            "name" => ["required", "string", "min:2", "max:100", Rule::unique("services", "name")->ignore($service?->id)],
             "description" => ["nullable", "string", "max:500"],
             "duration_minutes" => ["required", "integer", "min:5", "max:480"],
             "price" => ["required", "integer", "min:0", "max:10000000"],
@@ -63,9 +108,5 @@ class ServiceController extends Controller
             "price.required" => "Harga wajib diisi.",
             "price_max.gte" => "Harga maksimal tidak boleh lebih kecil dari harga.",
         ]);
-
-        $service->update($data);
-
-        return back()->with("success", "Layanan \"{$service->name}\" diperbarui.");
     }
 }

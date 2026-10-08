@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Barber;
 use App\Models\Booking;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -80,8 +83,81 @@ class BookingController extends Controller
             "status.in" => "Status tidak dikenali.",
         ]);
 
-        $booking->update(["status" => $data["status"]]);
+        $newStatus = $data["status"];
+        $oldStatus = $booking->status;
 
-        return back()->with("success", "Status booking #{$booking->id} diubah ke {$data["status"]}.");
+        // Guard kronologis: booking belum lewat waktu tidak boleh ditandai "done".
+        // Bandingkan tanggal + jam mulai terhadap waktu sekarang.
+        if ($newStatus === "done" && $this->isInFuture($booking)) {
+            throw ValidationException::withMessages([
+                "status" => "Booking #{$booking->id} belum berlangsung (jadwal masih di masa depan). "
+                    ."Tandai \"Selesai\" hanya setelah waktu booking terlewat.",
+            ]);
+        }
+
+        $booking->update(["status" => $newStatus]);
+
+        // Jejak audit terstruktur: siapa (admin) mengubah apa (booking),
+        // dari status apa ke status apa, dan kapan.
+        Log::info("Admin mengubah status booking.", [
+            "admin_id" => $request->user()?->id,
+            "booking_id" => $booking->id,
+            "old_status" => $oldStatus,
+            "new_status" => $newStatus,
+            "changed_at" => now()->toIso8601String(),
+        ]);
+
+        return back()->with("success", "Status booking #{$booking->id} diubah ke {$newStatus}.");
+    }
+
+    /**
+     * Detail satu booking — semua field yang tersimpan, termasuk catatan dan
+     * kontak lengkap. Aksi ubah status tersedia langsung dari halaman ini.
+     */
+    public function show(Booking $booking): Response
+    {
+        $booking->load([
+            "barber:id,name,specialty,photo,is_active",
+            "service:id,name,description,duration_minutes,price,price_max,is_active",
+            "user:id,name,email,whatsapp",
+        ]);
+
+        return Inertia::render("Admin/BookingDetail", [
+            "booking" => [
+                "id" => $booking->id,
+                "date" => $booking->date,
+                "start_time" => substr((string) $booking->start_time, 0, 5),
+                "end_time" => substr((string) $booking->end_time, 0, 5),
+                "status" => $booking->status,
+                "notes" => $booking->notes,
+                "whatsapp" => $booking->whatsapp,
+                "created_at" => $booking->created_at?->toIso8601String(),
+                "updated_at" => $booking->updated_at?->toIso8601String(),
+                "customer" => $booking->user?->only(["id", "name", "email", "whatsapp"]),
+                "barber" => $booking->barber,
+                "service" => $booking->service,
+            ],
+            "statuses" => self::STATUSES,
+        ]);
+    }
+
+    /**
+     * Apakah jadwal booking masih di masa depan (tanggal + jam mulai belum lewat)?
+     *
+     * `date` disimpan sebagai string date (tanpa cast Carbon di model), jadi kita
+     * normalkan dulu. Zona waktu mengikuti APP_TIMEZONE agar konsisten dengan jadwal.
+     */
+    private function isInFuture(Booking $booking): bool
+    {
+        $date = $booking->date instanceof \DateTimeInterface
+            ? $booking->date->format("Y-m-d")
+            : (string) $booking->date;
+
+        $start = Carbon::parse(
+            $date." ".(string) $booking->start_time,
+            config("app.timezone"),
+        );
+
+        return $start->isFuture();
     }
 }

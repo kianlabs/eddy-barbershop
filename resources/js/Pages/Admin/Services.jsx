@@ -1,14 +1,24 @@
 /**
- * Kelola layanan — daftar + toggle aktif/nonaktif + edit inline.
+ * Kelola layanan — daftar + toggle aktif/nonaktif + edit inline + tambah baru + hapus.
  * Props: services (dengan bookings_count).
  */
 import { Head, router, useForm } from "@inertiajs/react";
 import { useState } from "react";
 import AdminLayout from "../../Components/AdminLayout";
-import { Button, Icon, IconAction, harga, isRange, rupiah } from "../../Components/ui";
+import {
+    Button,
+    FieldErrorAdmin,
+    HapusKonfirmasi,
+    Icon,
+    IconAction,
+    harga,
+    isRange,
+    rupiah,
+} from "../../Components/ui";
 
 export default function Services({ services }) {
     const [editingId, setEditingId] = useState(null);
+    const [bukaTambah, setBukaTambah] = useState(false);
 
     const toggle = (service) => {
         router.patch(
@@ -18,6 +28,12 @@ export default function Services({ services }) {
         );
     };
 
+    const hapus = (service) => {
+        router.delete(`/admin/services/${service.id}`, {
+            preserveScroll: true,
+        });
+    };
+
     const aktif = services.filter((s) => s.is_active).length;
 
     return (
@@ -25,12 +41,49 @@ export default function Services({ services }) {
             title="Kelola Layanan"
             eyebrow="Menu & Tarif"
             action={
-                <span className="text-[12px] font-medium text-ink-mute">
-                    {aktif} aktif · {services.length} total
-                </span>
+                <div className="flex items-center gap-3">
+                    <span className="text-[12px] font-medium text-ink-mute">
+                        {aktif} aktif · {services.length} total
+                    </span>
+                    {!bukaTambah && (
+                        <Button
+                            type="button"
+                            onClick={() => setBukaTambah(true)}
+                            className="h-10 px-4 text-xs uppercase tracking-wider"
+                        >
+                            <Icon name="add" size={16} className="text-gold" />
+                            Tambah Layanan
+                        </Button>
+                    )}
+                </div>
             }
         >
             <Head title="Layanan — Admin Eddy Barbershop" />
+
+            {/* Form Tambah Layanan Baru */}
+            {bukaTambah && (
+                <div className="glass-card mb-4 rounded-ios border-l-4 border-l-gold p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-ink text-gold">
+                                <Icon name="add_circle" size={17} />
+                            </span>
+                            <h2 className="font-display text-xl uppercase tracking-wide text-ink">
+                                Tambah Layanan Baru
+                            </h2>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setBukaTambah(false)}
+                            aria-label="Tutup"
+                            className="text-ink-mute hover:text-ink"
+                        >
+                            <Icon name="close" size={18} />
+                        </button>
+                    </div>
+                    <CreateServiceForm onDone={() => setBukaTambah(false)} />
+                </div>
+            )}
 
             <ul className="space-y-3">
                 {services.map((s) => (
@@ -85,11 +138,18 @@ export default function Services({ services }) {
                                         tone={s.is_active ? "gold" : "default"}
                                         onClick={() => toggle(s)}
                                     />
-                                    <IconAction
-                                        icon="edit"
-                                        label="Ubah"
-                                        onClick={() => setEditingId(s.id)}
-                                    />
+                                    <div className="flex items-center gap-1.5">
+                                        <IconAction
+                                            icon="edit"
+                                            label="Ubah"
+                                            onClick={() => setEditingId(s.id)}
+                                        />
+                                        <HapusKonfirmasi
+                                            onConfirm={() => hapus(s)}
+                                            label="Hapus"
+                                            konfirmasi="Hapus layanan?"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -97,6 +157,121 @@ export default function Services({ services }) {
                 ))}
             </ul>
         </AdminLayout>
+    );
+}
+
+/** Form tambah layanan baru. */
+function CreateServiceForm({ onDone }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: "",
+        description: "",
+        duration_minutes: 30,
+        price: "",
+        price_max: "",
+    });
+
+    const submit = (e) => {
+        e.preventDefault();
+        post("/admin/services", {
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                onDone();
+            },
+        });
+    };
+
+    return (
+        <form onSubmit={submit} className="space-y-3">
+            <div>
+                <label className="eyebrow mb-1 block text-ink-mute">Nama Layanan *</label>
+                <input
+                    placeholder="mis. Potong Rambut + Cuci"
+                    value={data.name}
+                    onChange={(e) => setData("name", e.target.value)}
+                    className="glass-input h-11 w-full rounded-ios-sm px-3 text-sm text-ink"
+                    autoFocus
+                />
+                {errors.name && <FieldErrorAdmin>{errors.name}</FieldErrorAdmin>}
+            </div>
+
+            <div>
+                <label className="eyebrow mb-1 block text-ink-mute">Deskripsi (Opsional)</label>
+                <textarea
+                    rows={2}
+                    placeholder="Penjelasan singkat layanan..."
+                    value={data.description}
+                    onChange={(e) => setData("description", e.target.value)}
+                    className="glass-input w-full rounded-ios-sm px-3 py-2 text-sm text-ink"
+                />
+                {errors.description && <FieldErrorAdmin>{errors.description}</FieldErrorAdmin>}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div>
+                    <label className="eyebrow mb-1 block text-ink-mute">Durasi (Menit) *</label>
+                    <input
+                        type="number"
+                        min="5"
+                        max="480"
+                        value={data.duration_minutes}
+                        onChange={(e) => setData("duration_minutes", e.target.value)}
+                        className="glass-input h-11 w-full rounded-ios-sm px-3 text-sm text-ink"
+                    />
+                    {errors.duration_minutes && (
+                        <FieldErrorAdmin>{errors.duration_minutes}</FieldErrorAdmin>
+                    )}
+                </div>
+                <div>
+                    <label className="eyebrow mb-1 block text-ink-mute">Harga (Rp) *</label>
+                    <input
+                        type="number"
+                        min="0"
+                        placeholder="25000"
+                        value={data.price}
+                        onChange={(e) => setData("price", e.target.value)}
+                        className="glass-input h-11 w-full rounded-ios-sm px-3 text-sm text-ink"
+                    />
+                    {errors.price && <FieldErrorAdmin>{errors.price}</FieldErrorAdmin>}
+                </div>
+                <div>
+                    <label className="eyebrow mb-1 block text-ink-mute">Harga Maks (Rp, Opsional)</label>
+                    <input
+                        type="number"
+                        min="0"
+                        placeholder="mis. 50000 (bila ber-range)"
+                        value={data.price_max}
+                        onChange={(e) => setData("price_max", e.target.value)}
+                        className="glass-input h-11 w-full rounded-ios-sm px-3 text-sm text-ink placeholder:text-ink-mute/70"
+                    />
+                    {errors.price_max && <FieldErrorAdmin>{errors.price_max}</FieldErrorAdmin>}
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-hairline pt-3">
+                <span className="tnum text-[12px] text-ink-mute">
+                    {data.price ? `Tarif: ${rupiah(data.price || 0)}` : "Wajib isi nama, durasi, dan harga"}
+                </span>
+                <div className="flex gap-2">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={onDone}
+                        className="h-10 px-4 text-xs"
+                    >
+                        Batal
+                    </Button>
+                    <Button
+                        type="submit"
+                        disabled={processing}
+                        className="h-10 px-4 text-xs uppercase tracking-wider"
+                    >
+                        <Icon name="add" size={16} className="text-gold" />
+                        Tambah
+                    </Button>
+                </div>
+            </div>
+        </form>
     );
 }
 
@@ -127,7 +302,7 @@ function ServiceForm({ service, onDone }) {
                     onChange={(e) => setData("name", e.target.value)}
                     className="glass-input h-11 w-full rounded-ios-sm px-3 text-sm text-ink"
                 />
-                {errors.name && <FieldError>{errors.name}</FieldError>}
+                {errors.name && <FieldErrorAdmin>{errors.name}</FieldErrorAdmin>}
             </div>
 
             <div>
@@ -138,7 +313,7 @@ function ServiceForm({ service, onDone }) {
                     onChange={(e) => setData("description", e.target.value)}
                     className="glass-input w-full rounded-ios-sm px-3 py-2 text-sm text-ink"
                 />
-                {errors.description && <FieldError>{errors.description}</FieldError>}
+                {errors.description && <FieldErrorAdmin>{errors.description}</FieldErrorAdmin>}
             </div>
 
             <div className="grid grid-cols-3 gap-3">
@@ -151,7 +326,9 @@ function ServiceForm({ service, onDone }) {
                         onChange={(e) => setData("duration_minutes", e.target.value)}
                         className="glass-input h-11 w-full rounded-ios-sm px-3 text-sm text-ink"
                     />
-                    {errors.duration_minutes && <FieldError>{errors.duration_minutes}</FieldError>}
+                    {errors.duration_minutes && (
+                        <FieldErrorAdmin>{errors.duration_minutes}</FieldErrorAdmin>
+                    )}
                 </div>
                 <div>
                     <label className="eyebrow mb-1 block text-ink-mute">Harga</label>
@@ -162,7 +339,7 @@ function ServiceForm({ service, onDone }) {
                         onChange={(e) => setData("price", e.target.value)}
                         className="glass-input h-11 w-full rounded-ios-sm px-3 text-sm text-ink"
                     />
-                    {errors.price && <FieldError>{errors.price}</FieldError>}
+                    {errors.price && <FieldErrorAdmin>{errors.price}</FieldErrorAdmin>}
                 </div>
                 <div>
                     <label className="eyebrow mb-1 block text-ink-mute">Harga maks</label>
@@ -174,7 +351,7 @@ function ServiceForm({ service, onDone }) {
                         onChange={(e) => setData("price_max", e.target.value)}
                         className="glass-input h-11 w-full rounded-ios-sm px-3 text-sm text-ink placeholder:text-ink-mute/70"
                     />
-                    {errors.price_max && <FieldError>{errors.price_max}</FieldError>}
+                    {errors.price_max && <FieldErrorAdmin>{errors.price_max}</FieldErrorAdmin>}
                 </div>
             </div>
 
@@ -191,14 +368,5 @@ function ServiceForm({ service, onDone }) {
                 </div>
             </div>
         </form>
-    );
-}
-
-function FieldError({ children }) {
-    return (
-        <p className="mt-1 flex items-center gap-1 text-[12px] text-[#b42318]">
-            <Icon name="error" size={13} />
-            {children}
-        </p>
     );
 }

@@ -7,8 +7,28 @@
     <meta name="theme-color" content="#c9a227">
     <meta name="description" content="Eddy Barbershop — booking jadwal potong rambut online di Makamhaji, Kartasura, Sukoharjo. Duduk anteng, pulang ganteng.">
     <title inertia>Eddy Barbershop — Makamhaji, Kartasura</title>
+
+    {{-- Canonical: bersihkan query agar URL duplikat tidak terindeks terpisah. --}}
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- Open Graph & Twitter Card. og:title/og:description ditimpa saat runtime oleh
+         Inertia <Head> di setiap halaman; nilai di sini adalah default halaman muka. --}}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Eddy Barbershop">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:title" content="Eddy Barbershop — Makamhaji, Kartasura">
+    <meta property="og:description" content="Booking jadwal potong rambut online di Eddy Barbershop, Makamhaji, Kartasura, Sukoharjo. Duduk anteng, pulang ganteng.">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ url('/images/galeri/skin-fade.webp') }}">
+    <meta property="og:image:alt" content="Potongan rambut skin fade di Eddy Barbershop">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Eddy Barbershop — Makamhaji, Kartasura">
+    <meta name="twitter:description" content="Booking jadwal potong rambut online di Eddy Barbershop, Makamhaji, Kartasura, Sukoharjo. Duduk anteng, pulang ganteng.">
+    <meta name="twitter:image" content="{{ url('/images/galeri/skin-fade.webp') }}">
+
     <link rel="manifest" href="/manifest.webmanifest">
-    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/icon.svg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Eddy Barber">

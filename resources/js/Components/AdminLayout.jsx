@@ -13,6 +13,8 @@ const NAV = [
     { href: "/admin/bookings", label: "Booking", icon: "calendar_month", match: (url) => url.startsWith("/admin/bookings") },
     { href: "/admin/services", label: "Layanan", icon: "content_cut", match: (url) => url.startsWith("/admin/services") },
     { href: "/admin/barbers", label: "Kapster", icon: "badge", match: (url) => url.startsWith("/admin/barbers") },
+    { href: "/admin/galleries", label: "Galeri", icon: "photo_library", match: (url) => url.startsWith("/admin/galleries") },
+    { href: "/admin/testimonials", label: "Testimoni", icon: "reviews", match: (url) => url.startsWith("/admin/testimonials") },
 ];
 
 export default function AdminLayout({ title, eyebrow = "Panel Admin", action, children }) {
@@ -130,6 +132,14 @@ export default function AdminLayout({ title, eyebrow = "Panel Admin", action, ch
                         <div className="glass-card mb-3 flex items-center gap-2 rounded-ios border-l-4 border-l-confirmed px-4 py-3 text-sm text-ink">
                             <Icon name="check_circle" size={18} className="text-confirmed" />
                             {flash.success}
+                        </div>
+                    )}
+
+                    {/* Flash pesan error / penolakan */}
+                    {flash.error && (
+                        <div className="glass-card mb-3 flex items-center gap-2 rounded-ios border-l-4 border-l-[#d92d20] px-4 py-3 text-sm text-ink">
+                            <Icon name="error" size={18} className="text-[#b42318]" />
+                            {flash.error}
                         </div>
                     )}
 

@@ -2,6 +2,7 @@
  * Komponen UI bersama — gaya Apple Glass (lihat DESIGN.md).
  * Warna/radius/shadow memakai token dari resources/css/app.css.
  */
+import { useState } from "react";
 
 /**
  * Kontak resmi barbershop — satu sumber kebenaran.
@@ -311,5 +312,82 @@ export function StatCard({ icon, label, value, note }) {
             <div className="mt-1 text-[13px] font-semibold text-ink">{label}</div>
             {note && <div className="mt-0.5 text-[11px] text-ink-mute">{note}</div>}
         </div>
+    );
+}
+
+/* ================================================================== *
+ * TAMBAHAN (CRUD admin: layanan/kapster/jadwal/galeri/testimoni)
+ * Semua nama di bawah ini unik dan tidak mengubah komponen lama.
+ * ================================================================== */
+
+/** Nama hari Indonesia, indeks 0=Minggu .. 6=Sabtu — samakan dengan backend. */
+export const HARI_INDO = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+/** Label hari dari angka: 0 -> "Minggu". Aman untuk nilai di luar 0-6. */
+export function hariIndo(day) {
+    return HARI_INDO[Number(day)] ?? "-";
+}
+
+/** Format "HH:MM" -> "HH.MM". Selaras dengan `jamIndo()` untuk konsistensi. */
+export function jamHHMM(time) {
+    return String(time || "").slice(0, 5).replace(":", ".");
+}
+
+/**
+ * Scaffold kartu putih ala Apple untuk panel admin.
+ * Dipakai bersama oleh AdminPanelBaru/AdminPanelEdit/AdminPanelHapus
+ * supaya markup tombol aksi konsisten tanpa mengubah yang lama.
+ */
+export function AdminPanelBaru({ children, className = "" }) {
+    return <div className={`glass-card rounded-ios p-4 ${className}`}>{children}</div>;
+}
+
+/**
+ * Tombol "Hapus" dengan konfirmasi 2 langkah (Sesuai keyboard: Enter lalu
+ * klik "Ya, hapus"). Aman dari salah klik; tidak memakai window.confirm.
+ *
+ * @param {() => void} onConfirm  dijalankan saat pengguna menekan "Ya, hapus".
+ * @param {string} label          teks tombol utama (default "Hapus").
+ * @param {string} konfirmasi     teks pertanyaan saat menunggu konfirmasi.
+ */
+export function HapusKonfirmasi({ onConfirm, label = "Hapus", konfirmasi = "Yakin hapus?", className = "" }) {
+    const [menunggu, setMenunggu] = useState(false);
+
+    if (menunggu) {
+        return (
+            <span className={`inline-flex items-center gap-1.5 ${className}`}>
+                <span className="text-[12px] font-semibold text-[#b42318]">{konfirmasi}</span>
+                <IconAction
+                    icon="delete_forever"
+                    label="Ya, hapus"
+                    tone="danger"
+                    onClick={() => {
+                        setMenunggu(false);
+                        onConfirm();
+                    }}
+                />
+                <IconAction icon="close" label="Batal" onClick={() => setMenunggu(false)} />
+            </span>
+        );
+    }
+
+    return (
+        <IconAction
+            icon="delete"
+            label={label}
+            tone="danger"
+            className={className}
+            onClick={() => setMenunggu(true)}
+        />
+    );
+}
+
+/** Baris pesan kesalahan form (dipakai form admin dari sisi React). */
+export function FieldErrorAdmin({ children }) {
+    return (
+        <p className="mt-1 flex items-center gap-1 text-[12px] text-[#b42318]">
+            <Icon name="error" size={13} />
+            {children}
+        </p>
     );
 }

@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Eddy Barbershop — Notifikasi Booking (Gap 3)
+    |--------------------------------------------------------------------------
+    | Alamat email OWNER yang menerima notifikasi tiap booking baru. Bila kosong,
+    | notifikasi dilewati sepenuhnya (berguna di test/CI).
+    */
+    'booking' => [
+        'notify_email' => env('BOOKING_NOTIFY_EMAIL', env('ADMIN_EMAIL')),
+    ],
+
 ];
