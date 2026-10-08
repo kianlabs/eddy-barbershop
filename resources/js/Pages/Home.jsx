@@ -13,12 +13,12 @@ const JAM_TUTUP = 23;
 
 /** Galeri contoh gaya potong — placeholder gradient, tanpa gambar eksternal. */
 const GALERI = [
-    { label: "Skin Fade", src: "/images/galeri/skin-fade.jpg", alt: "Potongan rambut skin fade gradasi halus" },
-    { label: "Pompadour", src: "/images/galeri/pompadour.jpg", alt: "Potongan rambut pompadour klasik bervolume" },
-    { label: "Buzz Cut", src: "/images/galeri/buzz-cut.jpg", alt: "Potongan rambut buzz cut pendek rapi" },
-    { label: "Classic Taper", src: "/images/galeri/classic-taper.jpg", alt: "Potongan rambut classic taper sisi rapi" },
-    { label: "Textured Crop", src: "/images/galeri/textured-crop.jpg", alt: "Potongan rambut textured crop bertekstur" },
-    { label: "Korean Wave", src: "/images/galeri/korean-wave.jpg", alt: "Potongan rambut Korean wave bergelombang" },
+    { label: "Skin Fade", src: "/images/galeri/skin-fade.webp", alt: "Potongan rambut skin fade gradasi halus" },
+    { label: "Pompadour", src: "/images/galeri/pompadour.webp", alt: "Potongan rambut pompadour klasik bervolume" },
+    { label: "Buzz Cut", src: "/images/galeri/buzz-cut.webp", alt: "Potongan rambut buzz cut pendek rapi" },
+    { label: "Classic Taper", src: "/images/galeri/classic-taper.webp", alt: "Potongan rambut classic taper sisi rapi" },
+    { label: "Textured Crop", src: "/images/galeri/textured-crop.webp", alt: "Potongan rambut textured crop bertekstur" },
+    { label: "Korean Wave", src: "/images/galeri/korea-haircut.webp", alt: "Potongan rambut Korean wave bergelombang" },
 ];
 
 const KONTAK = {
