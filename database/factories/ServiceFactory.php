@@ -24,6 +24,9 @@ class ServiceFactory extends Factory
         ];
     }
 
+    /**
+     * Durasi layanan tertentu dalam menit.
+     */
     public function duration(int $minutes): static
     {
         return $this->state(fn (array $attributes) => ['duration_minutes' => $minutes]);

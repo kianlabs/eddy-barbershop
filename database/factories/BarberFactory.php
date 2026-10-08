@@ -22,6 +22,9 @@ class BarberFactory extends Factory
         ];
     }
 
+    /**
+     * Kapster non-aktif — tidak boleh muncul di daftar publik.
+     */
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => ['is_active' => false]);

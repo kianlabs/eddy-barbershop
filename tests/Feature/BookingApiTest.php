@@ -14,25 +14,27 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Regresi API booking (Eddy Barbershop) — terhadap kode branch be-kritis.
+ * Regresi API booking (Eddy Barbershop).
  *
- * Kontrak perilaku yang diuji:
- *  - C1 [KRITIS] : overlap durasi via irisan interval. Booking pada jam yang
- *                  bersinggungan dengan booking aktif (pending/confirmed) untuk
- *                  kapster & tanggal yang sama HARUS ditolak 422 — termasuk
- *                  ketika durasi layanan berbeda.
- *  - R            : start_time identik untuk kapster+tanggal sama ditolak 422
- *                  (cek aplikasi + unique index).
- *  - I1           : `hide_barber=true` menyembunyikan relasi `barber`.
- *  - WA           : validasi format `whatsapp` & `name` minimal 2 karakter.
+ * Kontrak perilaku yang diuji (lihat catatan branch be-kritis):
+ *  - C1 [KRITIS] : overlap durasi — booking pada jam yang bersinggungan dengan
+ *                  booking aktif (pending/confirmed) untuk kapster & tanggal
+ *                  yang sama HARUS ditolak 422. Termasuk durasi layanan beda.
+ *  - R            : tidak boleh ada dua booking start_time identik (unique).
+ *  - I1           : opsi `hide_barber` menyembunyikan relasi `barber`.
+ *  - WA           : validasi format `whatsapp`, panjang `name`, dsb.
  *
- * DB pengujian: phpunit.xml memaksa DB_CONNECTION=sqlite + DB_DATABASE=:memory:
- * sehingga test cepat dan TIDAK menyentuh MySQL/DB dev. Enum `bookings.status`
- * aman di SQLite: SQLiteGrammar (Laravel 13) meng-translate enum menjadi
- * `varchar check (col in (...))` tanpa mengubah migrasi.
+ * Catatan DB pengujian:
+ *  - `phpunit.xml` memaksa DB_CONNECTION=sqlite + DB_DATABASE=:memory:.
+ *  - SQLite (Laravel 13, SQLiteGrammar::typeEnum) men-*translate* enum menjadi
+ *    `varchar check (... in ("pending","confirmed",...))`, jadi kolom enum
+ *    `bookings.status` tetap berjalan tanpa mengubah migrasi.
  *
- * Model tidak memakai trait HasFactory (tidak boleh diubah), sehingga factory
- * di-resolve lewat `Factory::factoryForModel()` dan FK di-set eksplisit.
+ * Catatan implementasi:
+ *  - Semua test memakai trait `RefreshDatabase` sehingga tidak menyentuh
+ *    MySQL/DB dev.
+ *  - Model tidak memakai trait HasFactory (tidak boleh diubah). Factory
+ *    di-resolve lewat `Factory::factoryForModel()`.
  */
 class BookingApiTest extends TestCase
 {
@@ -42,27 +44,35 @@ class BookingApiTest extends TestCase
     {
         parent::setUp();
 
-        // Guardrail: jangan pernah menyentuh DB non-in-memory (mis. MySQL dev).
-        // Dijalankan sebelum hook RefreshDatabase (yang dipasang setelah parent).
+        // Guardrail SEBELUM trait RefreshDatabase menyentuh DB apa pun. Trait ini
+        // menyisipkan refreshDatabase() sebagai hook setUp setelah parent, jadi
+        // pemeriksaan di bawah masih terjadi sebelum migrasi/transaksi dimulai.
         $connection = config('database.default');
         if (config("database.connections.{$connection}.database") !== ':memory:') {
-            $this->markTestSkipped('BookingApiTest butuh DB in-memory (lihat phpunit.xml).');
+            $this->markTestSkipped(
+                'BookingApiTest membutuhkan DB pengujian in-memory. '
+                .'Set DB_CONNECTION=sqlite dan DB_DATABASE=:memory: di phpunit.xml.'
+            );
         }
     }
 
     // ----------------------------------------------------------------- help --
 
+    /** Buat model lewat factory tanpa butuh trait HasFactory di model. */
     protected function factoryFor(string $modelClass): Factory
     {
         return Factory::factoryForModel($modelClass);
     }
 
-    /** Tanggal uji deterministik (besok), tidak bergantung hari test dijalankan. */
+    /** Tanggal uji deterministik (bukan bergantung hari saat test dijalankan). */
     protected function testDate(int $addDays = 1): Carbon
     {
         return Carbon::today()->addDays($addDays)->startOfDay();
     }
 
+    /**
+     * Kapster + jadwal untuk hari pada tanggal tertentu (10:00–23:00).
+     */
     protected function barberOpenOn(Carbon $date, string $start = '10:00', string $end = '23:00'): Barber
     {
         $barber = $this->factoryFor(Barber::class)->create();
@@ -83,6 +93,7 @@ class BookingApiTest extends TestCase
         return $this->factoryFor(Service::class)->duration($minutes)->create();
     }
 
+    /** Booking langsung ke DB (mem-bypass controller) untuk menyiapkan data. */
     protected function seedBooking(
         Barber $barber,
         Service $service,
@@ -136,7 +147,7 @@ class BookingApiTest extends TestCase
         $slots = $response->json('slots');
         $this->assertIsArray($slots);
         $this->assertNotEmpty($slots);
-        $this->assertSame('10:00', $slots[0]);
+        $this->assertSame('10:00', $slots[0], 'Slot pertama harus tepat saat jam buka jadwal (10:00).');
     }
 
     #[Test]
@@ -144,6 +155,7 @@ class BookingApiTest extends TestCase
     {
         $date = $this->testDate();
         $barber = $this->barberOpenOn($date, '10:00', '23:00');
+        // Layanan 60 menit → langkah antar slot 60 menit.
         $service = $this->serviceWithDuration(60);
 
         $slots = $this->getJson('/api/available-slots?'.http_build_query([
@@ -161,6 +173,7 @@ class BookingApiTest extends TestCase
     #[Test]
     public function available_slots_returns_empty_slots_with_closed_reason_when_no_schedule(): void
     {
+        // Kapster TANPA jadwal pada tanggal uji.
         $barber = $this->factoryFor(Barber::class)->create();
         $service = $this->serviceWithDuration(30);
         $date = $this->testDate();
@@ -181,9 +194,8 @@ class BookingApiTest extends TestCase
     #[Test]
     public function overlapping_booking_with_different_duration_is_rejected(): void
     {
-        // Skenario koordinator: booking 30 menit 10:00-10:30, lalu booking 90
-        // menit mulai 10:30 → 10:30 < 10:30? tidak; uji varian yang benar-benar
-        // tumpang: 10:15 (start) menembus end existing 10:30 → 422.
+        // C1 [KRITIS]: booking 30 menit 10:00-10:30, lalu booking 90 menit di
+        // 10:15 (bertumpang tindih) oleh kapster & tanggal SAMA → harus 422.
         $date = $this->testDate();
         $barber = $this->barberOpenOn($date, '10:00', '23:00');
 
@@ -201,8 +213,8 @@ class BookingApiTest extends TestCase
     #[Test]
     public function booking_starting_inside_an_existing_longer_booking_is_rejected(): void
     {
-        // Booking panjang 90 menit 10:00-11:30 sudah ada, lalu booking pendek 30
-        // menit di 11:00 (di dalam rentang) → 422.
+        // Sisi lain C1: booking panjang 90 menit 10:00-11:30 sudah ada, lalu
+        // booking pendek 30 menit di 11:00 (di dalam rentang) → 422.
         $date = $this->testDate();
         $barber = $this->barberOpenOn($date, '10:00', '23:00');
 
@@ -241,8 +253,8 @@ class BookingApiTest extends TestCase
     #[Test]
     public function adjacent_non_overlapping_booking_succeeds(): void
     {
-        // Perbaikan C1 tidak boleh terlalu ketat: 10:00-10:30 lalu mulai tepat
-        // 10:30 (bersinggungan di batas saja) → 201.
+        // Perbaikan C1 tidak boleh terlalu ketat: 10:00-10:30 lalu 10:30 (durasi
+        // berikutnya) HANYA bersinggungan di batas → harus BERHASIL (201).
         $date = $this->testDate();
         $barber = $this->barberOpenOn($date, '10:00', '23:00');
 
@@ -320,6 +332,8 @@ class BookingApiTest extends TestCase
     #[Test]
     public function duplicate_start_time_for_same_barber_and_date_is_rejected(): void
     {
+        // R: request kedua dengan start_time persis sama (kapster & tanggal sama)
+        // harus ditolak 422 — baik oleh pengecekan aplikasi maupun unique index.
         $date = $this->testDate();
         $barber = $this->barberOpenOn($date, '10:00', '23:00');
         $service = $this->serviceWithDuration(30);
@@ -339,6 +353,7 @@ class BookingApiTest extends TestCase
     #[Test]
     public function hide_barber_true_omits_barber_relation(): void
     {
+        // I1: saat hide_barber=true, respons TIDAK memuat relasi barber.
         $date = $this->testDate();
         $barber = $this->barberOpenOn($date, '10:00', '23:00');
         $service = $this->serviceWithDuration(30);
@@ -359,6 +374,7 @@ class BookingApiTest extends TestCase
     #[Test]
     public function hide_barber_absent_or_false_includes_barber_relation(): void
     {
+        // I1: default (tanpa hide_barber) tetap memuat relasi barber.
         $date = $this->testDate();
         $barber = $this->barberOpenOn($date, '10:00', '23:00');
         $service = $this->serviceWithDuration(30);
