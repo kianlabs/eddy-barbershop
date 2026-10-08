@@ -133,7 +133,6 @@ class BookingController extends Controller
 
         return response()->json([
             "slots" => array_keys($barbersBySlot),
-            "barbers_by_slot" => $barbersBySlot,
             "barbers_by_time" => $barbersBySlot,
         ]);
     }
