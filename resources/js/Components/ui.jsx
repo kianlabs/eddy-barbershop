@@ -13,6 +13,28 @@ export const KONTAK = {
     telepon: "+6289664726691",
 };
 
+/** Alamat toko — satu sumber kebenaran (dipakai pesan WhatsApp & halaman Home). */
+export const ALAMAT = "Jl. A. Yani No.402, Makamhaji, Kartasura, Sukoharjo";
+
+/**
+ * Normalisasi nomor WhatsApp Indonesia ke format internasional tanpa tanda baca.
+ *
+ * Aturan:
+ * - buang semua karakter non-digit (spasi, "+", "-", titik, tanda kurung);
+ * - awalan "0" (lokal, mis. 0812-3456-7890) → "62";
+ * - nomor yang sudah diawali "62" dibiarkan apa adanya.
+ *
+ * @example normalizeWa("0812-3456-7890") // "6281234567890"
+ * @example normalizeWa("+62 812 3456 7890") // "6281234567890"
+ * @returns {string} hanya digit, atau "" bila tidak ada digit.
+ */
+export function normalizeWa(input) {
+    const digits = String(input ?? "").replace(/\D/g, "");
+    if (!digits) return "";
+    if (digits.startsWith("0")) return `62${digits.slice(1)}`;
+    return digits;
+}
+
 /** Ikon Material Symbols Outlined. */
 export function Icon({ name, className = "", filled = false, size = 20 }) {
     return (
