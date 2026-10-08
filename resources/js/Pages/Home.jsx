@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Eyebrow, Icon, SectionHeading, TopBar, harga, isRange } from "../Components/ui";
+import { Button, Eyebrow, Icon, KONTAK, SectionHeading, TopBar, harga, isRange } from "../Components/ui";
 
 const FACILITIES = [
     { icon: "chair", title: "3 Kursi Nyaman", note: "Ruangan Ber-AC" },
@@ -11,7 +11,7 @@ const FACILITIES = [
 const JAM_BUKA = 10;
 const JAM_TUTUP = 23;
 
-/** Galeri contoh gaya potong — placeholder gradient, tanpa gambar eksternal. */
+/** Galeri contoh gaya potong — memakai gambar WebP lokal di /images/galeri. */
 const GALERI = [
     { label: "Skin Fade", src: "/images/galeri/skin-fade.webp", alt: "Potongan rambut skin fade gradasi halus" },
     { label: "Pompadour", src: "/images/galeri/pompadour.webp", alt: "Potongan rambut pompadour klasik bervolume" },
@@ -20,12 +20,6 @@ const GALERI = [
     { label: "Textured Crop", src: "/images/galeri/textured-crop.webp", alt: "Potongan rambut textured crop bertekstur" },
     { label: "Korean Wave", src: "/images/galeri/korea-haircut.webp", alt: "Potongan rambut Korean wave bergelombang" },
 ];
-
-const KONTAK = {
-    whatsapp: "6289664726691",
-    instagram: "eddy.barbershop",
-    telepon: "+6289664726691",
-};
 
 /**
  * Status buka/tutup dihitung dari jam perangkat, disegarkan tiap menit.
