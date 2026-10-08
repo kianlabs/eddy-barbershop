@@ -13,12 +13,12 @@ const JAM_TUTUP = 23;
 
 /** Galeri contoh gaya potong — placeholder gradient, tanpa gambar eksternal. */
 const GALERI = [
-    { label: "Skin Fade", from: "from-neutral-200", to: "to-neutral-400" },
-    { label: "Pompadour", from: "from-amber-100", to: "to-amber-300" },
-    { label: "Buzz Cut", from: "from-slate-200", to: "to-slate-400" },
-    { label: "Classic Taper", from: "from-stone-200", to: "to-stone-400" },
-    { label: "Textured Crop", from: "from-zinc-200", to: "to-zinc-400" },
-    { label: "Korean Wave", from: "from-orange-100", to: "to-rose-200" },
+    { label: "Skin Fade", src: "/images/galeri/skin-fade.jpg", alt: "Potongan rambut skin fade gradasi halus" },
+    { label: "Pompadour", src: "/images/galeri/pompadour.jpg", alt: "Potongan rambut pompadour klasik bervolume" },
+    { label: "Buzz Cut", src: "/images/galeri/buzz-cut.jpg", alt: "Potongan rambut buzz cut pendek rapi" },
+    { label: "Classic Taper", src: "/images/galeri/classic-taper.jpg", alt: "Potongan rambut classic taper sisi rapi" },
+    { label: "Textured Crop", src: "/images/galeri/textured-crop.jpg", alt: "Potongan rambut textured crop bertekstur" },
+    { label: "Korean Wave", src: "/images/galeri/korean-wave.jpg", alt: "Potongan rambut Korean wave bergelombang" },
 ];
 
 const KONTAK = {
@@ -249,19 +249,24 @@ export default function Home({ services, barbers }) {
                     />
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {GALERI.map((g) => (
-                            <div
+                            <figure
                                 key={g.label}
                                 className="group relative overflow-hidden rounded-ios border border-black/[0.05] shadow-sm"
                             >
-                                <div
-                                    aria-hidden="true"
-                                    className={`h-28 w-full bg-gradient-to-br ${g.from} ${g.to} transition-transform duration-300 group-hover:scale-[1.03] sm:h-32`}
+                                <img
+                                    src={g.src}
+                                    alt={g.alt}
+                                    loading="lazy"
+                                    decoding="async"
+                                    width={600}
+                                    height={600}
+                                    className="h-28 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03] sm:h-32"
                                 />
-                                <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-                                <span className="absolute bottom-2 left-2.5 text-xs font-semibold uppercase tracking-wide text-white drop-shadow">
+                                <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                                <figcaption className="absolute bottom-2 left-2.5 text-xs font-semibold uppercase tracking-wide text-white drop-shadow">
                                     {g.label}
-                                </span>
-                            </div>
+                                </figcaption>
+                            </figure>
                         ))}
                     </div>
                 </section>
