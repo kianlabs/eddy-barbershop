@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             HandleInertiaRequests::class,
+        ]);
+
+        // Middleware `auth` membuat redirect 302 biasa (bukan 401 JSON) saat
+        // tamu membuka halaman admin. Client Inertia menangani 302 sebagai
+        // kunjungan Inertia sungguhan, sehingga halaman /login ikut ter-render
+        // tanpa full reload — aman untuk SPA.
+        $middleware->redirectGuestsTo("/login");
+
+        // Alias `admin` -> cek flag users.is_admin (harus setelah `auth`).
+        $middleware->alias([
+            "admin" => EnsureUserIsAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
