@@ -37,15 +37,29 @@ class BookingController extends Controller
 
     public function availableSlots(Request $request): JsonResponse
     {
+        // Mode 'acak' (`all=1`) menghitung UNION slot semua kapster; karena itu
+        // `barber_id` menjadi opsional pada mode ini. Di luar mode tersebut,
+        // `barber_id` tetap wajib (tidak ada perubahan kontrak).
         $data = $request->validate([
-            "barber_id" => "required|exists:barbers,id",
+            "all" => "sometimes|in:1",
+            // `exists` hanya relevan di luar mode 'acak': saat all=1, barber_id
+            // diabaikan sepenuhnya sehingga nilai usang/aneh tidak membatalkan union.
+            "barber_id" => "required_unless:all,1|nullable|exclude_unless:all,null|exists:barbers,id",
             "service_id" => "required|exists:services,id",
             "date" => "required|date|after_or_equal:today",
+        ], [
+            "barber_id.required_unless" => "Kapster wajib dipilih.",
+            "barber_id.exists" => "Kapster tidak ditemukan.",
         ]);
 
-        $barber = Barber::findOrFail($data["barber_id"]);
         $service = Service::findOrFail($data["service_id"]);
         $date = Carbon::parse($data["date"]);
+
+        if (($data["all"] ?? null) === "1") {
+            return $this->unionSlots($service, $date);
+        }
+
+        $barber = Barber::findOrFail($data["barber_id"]);
 
         $schedule = Schedule::where("barber_id", $barber->id)
             ->where("day_of_week", $date->dayOfWeek)
@@ -56,8 +70,6 @@ class BookingController extends Controller
             return response()->json(["slots" => [], "reason" => "closed"]);
         }
 
-        $duration = $service->duration_minutes;
-
         // Load seluruh booking aktif pada hari itu, lalu bandingkan irisan
         // interval di PHP. Pendekatan ini benar untuk durasi layanan berapa pun
         // dan tidak bergantung pada kesamaan jam mulai.
@@ -66,10 +78,80 @@ class BookingController extends Controller
             ->whereIn("status", self::ACTIVE_STATUSES)
             ->get(["start_time", "end_time"]);
 
-        $busy = $bookings->map(fn (Booking $booking) => [
-            "start" => $this->minutesOfDay($booking->start_time),
-            "end" => $this->minutesOfDay($booking->end_time),
-        ])->all();
+        $slots = $this->computeSlotsForBarber($schedule, $service->duration_minutes, $date, $bookings);
+
+        return response()->json(["slots" => $slots]);
+    }
+
+    /**
+     * UNION slot untuk mode 'acak': jam yang bebas untuk MINIMAL satu kapster
+     * aktif yang punya jadwal pada hari itu.
+     *
+     * Performa: satu query barber, satu query schedule (semua kapster sekaligus),
+     * satu query booking per hari. Tidak ada query di dalam loop.
+     */
+    private function unionSlots(Service $service, Carbon $date): JsonResponse
+    {
+        $day = $date->toDateString();
+
+        $schedules = Schedule::where("day_of_week", $date->dayOfWeek)
+            ->where("is_active", true)
+            ->whereIn("barber_id", Barber::where("is_active", true)->select("id"))
+            ->get();
+
+        if ($schedules->isEmpty()) {
+            return response()->json(["slots" => [], "reason" => "closed"]);
+        }
+
+        // Query booking SEKALI untuk seluruh kapster pada hari itu, lalu
+        // kelompokkan di PHP dengan key string barber_id (cast DB stabil).
+        $bookingsByBarber = Booking::whereIn("barber_id", $schedules->pluck("barber_id"))
+            ->where("date", $day)
+            ->whereIn("status", self::ACTIVE_STATUSES)
+            ->get(["barber_id", "start_time", "end_time"])
+            ->groupBy(fn (Booking $booking) => (string) $booking->barber_id);
+
+        $duration = $service->duration_minutes;
+
+        // jam => [id kapster, ...]
+        $barbersBySlot = [];
+
+        foreach ($schedules as $schedule) {
+            $busy = ($bookingsByBarber[(string) $schedule->barber_id] ?? collect())
+                ->map(fn (Booking $booking) => [
+                    "start" => $this->minutesOfDay($booking->start_time),
+                    "end" => $this->minutesOfDay($booking->end_time),
+                ])->all();
+
+            foreach ($this->computeSlotsForBarber($schedule, $duration, $date, $busy) as $time) {
+                $barbersBySlot[$time][] = $schedule->barber_id;
+            }
+        }
+
+        // Terurut menaik secara leksikografis == kronologis untuk format "HH:MM".
+        ksort($barbersBySlot);
+
+        return response()->json([
+            "slots" => array_keys($barbersBySlot),
+            "barbers_by_slot" => $barbersBySlot,
+            "barbers_by_time" => $barbersBySlot,
+        ]);
+    }
+
+    /**
+     * Hitung slot bebas untuk satu jadwal kapster terhadap daftar interval sibuk.
+     *
+     * @param  \Illuminate\Support\Collection<int, Booking>|array<int, array{start: int, end: int}>  $busy
+     * @return array<int, string>
+     */
+    private function computeSlotsForBarber(Schedule $schedule, int $duration, Carbon $date, $busy): array
+    {
+        if (! is_array($busy)) {
+            $busy = $busy->map(fn (Booking $booking) => [
+                "start" => $this->minutesOfDay($booking->start_time),
+                "end" => $this->minutesOfDay($booking->end_time),
+            ])->all();
+        }
 
         $slots = [];
 
@@ -87,7 +169,7 @@ class BookingController extends Controller
             $cursor->addMinutes($duration);
         }
 
-        return response()->json(["slots" => $slots]);
+        return $slots;
     }
 
     public function store(Request $request): JsonResponse
