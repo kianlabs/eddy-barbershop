@@ -114,6 +114,12 @@ class AvailableSlotsUnionTest extends TestCase
      * Feature-detect (bukan sekadar cek route) supaya test tidak "hijau palsu"
      * ketika route ada tapi `barber_id` masih wajib. Probe memakai data minimal
      * (satu kapster + satu jadwal) dan mengirim permintaan `all=1` tanpa barber_id.
+     *
+     * Probe ini BERSIFAT SEMENTARA: seluruh data yang dibuatnya dihapus lagi di
+     * blok `finally`, sehingga tidak meninggalkan kapster/jadwal yang bisa
+     * mencemari asumsi test pemanggil (mis. assertion "terisi di SEMUA kapster").
+     * `finally` dipakai agar pembersihan tetap jalan walau `markTestSkipped`
+     * melempar SkippedTestError.
      */
     protected function skipIfUnionSlotUnavailable(): void
     {
@@ -125,29 +131,37 @@ class AvailableSlotsUnionTest extends TestCase
         $barber = $this->barberOpenOn($date);
         $service = $this->serviceWithDuration(30);
 
-        $response = $this->getJson('/api/available-slots?'.http_build_query([
-            'all' => 1,
-            'service_id' => $service->id,
-            'date' => $date->toDateString(),
-        ]));
+        try {
+            $response = $this->getJson('/api/available-slots?'.http_build_query([
+                'all' => 1,
+                'service_id' => $service->id,
+                'date' => $date->toDateString(),
+            ]));
 
-        // Selama `barber_id` masih `required`, endpoint membalas 422 → fitur belum
-        // mendarat. Guard lama harus dilonggarkan agar `all=1` lolos validasi.
-        if ($response->status() === 422 && $response->json('errors.barber_id') !== null) {
-            $this->markTestSkipped(
-                'Fitur union-slot belum mendarat: `barber_id` masih wajib saat all=1 '
-                .'(lihat branch be-union-slot).'
-            );
-        }
+            // Selama `barber_id` masih `required`, endpoint membalas 422 → fitur belum
+            // mendarat. Guard lama harus dilonggarkan agar `all=1` lolos validasi.
+            if ($response->status() === 422 && $response->json('errors.barber_id') !== null) {
+                $this->markTestSkipped(
+                    'Fitur union-slot belum mendarat: `barber_id` masih wajib saat all=1 '
+                    .'(lihat branch be-union-slot).'
+                );
+            }
 
-        // Balasan 5xx / error lain menandakan implementasi belum siap diuji.
-        if ($response->status() >= 500) {
-            $this->markTestSkipped('Endpoint union-slot mengembalikan 5xx; implementasi belum siap diuji.');
-        }
+            // Balasan 5xx / error lain menandakan implementasi belum siap diuji.
+            if ($response->status() >= 500) {
+                $this->markTestSkipped('Endpoint union-slot mengembalikan 5xx; implementasi belum siap diuji.');
+            }
 
-        // Sanity: bentuk respons harus memuat array `slots`.
-        if (! is_array($response->json('slots'))) {
-            $this->markTestSkipped('Respons union-slot tidak memuat array `slots`; kontrak belum sesuai dugaan.');
+            // Sanity: bentuk respons harus memuat array `slots`.
+            if (! is_array($response->json('slots'))) {
+                $this->markTestSkipped('Respons union-slot tidak memuat array `slots`; kontrak belum sesuai dugaan.');
+            }
+        } finally {
+            // Bersihkan state probe agar tidak mencemari body test.
+            Booking::where('barber_id', $barber->id)->delete();
+            Schedule::where('barber_id', $barber->id)->delete();
+            $barber->delete();
+            $service->delete();
         }
     }
 
