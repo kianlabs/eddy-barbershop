@@ -195,3 +195,98 @@ export function todayISO() {
     const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
 }
+
+/* ------------------------------------------------------------------ *
+ * Bagian khusus panel admin
+ * ------------------------------------------------------------------ */
+
+/** Orb kabur di latar agar efek kaca terlihat (versi ringkas, dipakai panel admin). */
+export function AmbientGlow() {
+    return (
+        <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+            <div className="absolute -top-24 left-1/2 h-80 w-[600px] -translate-x-1/2 rounded-full bg-[#eadeb5]/30 blur-3xl" />
+            <div className="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-[#e8edfc]/40 blur-3xl" />
+            <div className="absolute bottom-1/4 -left-20 h-80 w-80 rounded-full bg-[#fcedd9]/35 blur-3xl" />
+        </div>
+    );
+}
+
+/**
+ * Metadata status booking — label Indonesia + warna dot.
+ * Satu sumber kebenaran agar tabel, filter, dan dashboard konsisten.
+ */
+export const STATUS_BOOKING = {
+    pending: { label: "Menunggu", dot: "bg-amber-400", pill: "bg-amber-400/15 text-amber-700" },
+    confirmed: { label: "Dikonfirmasi", dot: "bg-confirmed", pill: "bg-confirmed/15 text-confirmed" },
+    done: { label: "Selesai", dot: "bg-ink", pill: "bg-ink/10 text-ink" },
+    cancelled: { label: "Batal", dot: "bg-ink-mute", pill: "bg-black/[0.06] text-ink-mute" },
+};
+
+export function statusInfo(status) {
+    return STATUS_BOOKING[status] ?? { label: status || "-", dot: "bg-ink-mute", pill: "bg-black/[0.06] text-ink-mute" };
+}
+
+/** Format "HH:MM" -> "HH.MM" (gaya Indonesia) untuk waktu. */
+export function jamIndo(time) {
+    return String(time || "").slice(0, 5).replace(":", ".");
+}
+
+/** Bersihkan nomor WhatsApp Indonesia menjadi format internasional tanpa "+": 08xx -> 628xx. */
+export function waNumber(value) {
+    let n = String(value || "").replace(/[^0-9]/g, "");
+    if (n.startsWith("0")) n = `62${n.slice(1)}`;
+    return n;
+}
+
+/** Tautan chat WhatsApp dengan template pesan opsional. */
+export function waLink(number, text) {
+    const base = `https://wa.me/${waNumber(number)}`;
+    return text ? `${base}?text=${encodeURIComponent(text)}` : base;
+}
+
+/** Tombol aksi kecil (ubah status / toggle) dengan ikon. */
+export function IconAction({ icon, label, tone = "default", className = "", ...props }) {
+    const tones = {
+        default: "border-black/[0.06] bg-black/[0.04] text-ink hover:bg-black/[0.07]",
+        danger: "border-transparent bg-[#d92d20]/10 text-[#b42318] hover:bg-[#d92d20]/15",
+        gold: "border-gold/30 bg-gold/10 text-[#8a6d12] hover:bg-gold/15",
+    };
+    return (
+        <button
+            type="button"
+            aria-label={label}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 ${tones[tone] ?? tones.default} ${className}`}
+            {...props}
+        >
+            <Icon name={icon} size={15} />
+            {label}
+        </button>
+    );
+}
+
+/** Pill status booking (label + dot warna). */
+export function StatusPill({ status }) {
+    const info = statusInfo(status);
+    return (
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${info.pill}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${info.dot}`} />
+            {info.label}
+        </span>
+    );
+}
+
+/** Kartu statistik (dipakai dashboard). */
+export function StatCard({ icon, label, value, note }) {
+    return (
+        <div className="glass-card rounded-ios p-4">
+            <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-ink text-white">
+                <Icon name={icon} size={18} className="text-gold" />
+            </div>
+            <div className="tnum font-display text-3xl font-bold leading-none tracking-wide text-ink">
+                {value}
+            </div>
+            <div className="mt-1 text-[13px] font-semibold text-ink">{label}</div>
+            {note && <div className="mt-0.5 text-[11px] text-ink-mute">{note}</div>}
+        </div>
+    );
+}

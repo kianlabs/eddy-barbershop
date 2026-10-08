@@ -12,6 +12,10 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Akun admin panel — dipisah agar bisa dijalankan sendiri
+        // (php artisan db:seed --class=AdminSeeder).
+        $this->call(AdminSeeder::class);
+
         $barbers = [
             ["name" => "Mas Eddy", "specialty" => "Master Barber - Classic Pompadour, Executive Taper"],
             ["name" => "Bima", "specialty" => "Senior Fade Specialist - Skin Fade, Modern Crop"],

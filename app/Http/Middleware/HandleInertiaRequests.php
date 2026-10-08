@@ -37,7 +37,10 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
-            //
+            // Flash pesan sukses dari redirect controller (mis. ubah status booking).
+            "flash" => [
+                "success" => fn () => $request->session()->get("success"),
+            ],
         ];
     }
 }
