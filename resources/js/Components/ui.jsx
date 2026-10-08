@@ -253,11 +253,12 @@ export function jamIndo(time) {
     return String(time || "").slice(0, 5).replace(":", ".");
 }
 
-/** Bersihkan nomor WhatsApp Indonesia menjadi format internasional tanpa "+": 08xx -> 628xx. */
+/**
+ * Alias dari `normalizeWa()` — dipertahankan agar pemanggil lama (mis. waLink,
+ * halaman admin) tetap jalan. Implementasi tunggal ada di `normalizeWa()`.
+ */
 export function waNumber(value) {
-    let n = String(value || "").replace(/[^0-9]/g, "");
-    if (n.startsWith("0")) n = `62${n.slice(1)}`;
-    return n;
+    return normalizeWa(value);
 }
 
 /** Tautan chat WhatsApp dengan template pesan opsional. */
