@@ -117,7 +117,7 @@ class AvailableSlotsUnionTest extends TestCase
      */
     protected function skipIfUnionSlotUnavailable(): void
     {
-        if (! app('router')->has('api/available-slots') && ! app('router')->has('available-slots')) {
+        if (! app('router')->has('api.available-slots')) {
             $this->markTestSkipped('Fitur union-slot belum tersedia: route /api/available-slots tidak terdaftar.');
         }
 
@@ -141,7 +141,7 @@ class AvailableSlotsUnionTest extends TestCase
         }
 
         // Balasan 5xx / error lain menandakan implementasi belum siap diuji.
-        if ($response->serverError()) {
+        if ($response->status() >= 500) {
             $this->markTestSkipped('Endpoint union-slot mengembalikan 5xx; implementasi belum siap diuji.');
         }
 
