@@ -3,6 +3,16 @@
  * Warna/radius/shadow memakai token dari resources/css/app.css.
  */
 
+/**
+ * Kontak resmi barbershop — satu sumber kebenaran.
+ * Dipakai Home.jsx agar nilai WA/IG/telepon tidak tersebar di banyak tempat.
+ */
+export const KONTAK = {
+    whatsapp: "6289664726691",
+    instagram: "eddy.barbershop",
+    telepon: "+6289664726691",
+};
+
 /** Ikon Material Symbols Outlined. */
 export function Icon({ name, className = "", filled = false, size = 20 }) {
     return (
@@ -167,4 +177,21 @@ export function tanggalIndo(iso) {
         month: "short",
         year: "numeric",
     });
+}
+
+/**
+ * Tanggal hari ini sebagai "YYYY-MM-DD" memakai zona waktu LOKAL perangkat.
+ *
+ * Sengaja TIDAK memakai `new Date().toISOString()` karena itu mengonversi ke UTC:
+ * di WIB (UTC+7) pukul 00:00–06:59 tanggal UTC masih hari kemarin, sehingga
+ * `toISOString().slice(0,10)` bisa menghasilkan tanggal yang beda 1 hari dari
+ * tanggal lokal yang dilihat pengguna. Helper ini dibangun dari getFullYear/
+ * getMonth/getDate sehingga konsisten dengan `tanggalIndo()` dan `buildWeekStrip()`.
+ */
+export function todayISO() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
 }

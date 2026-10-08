@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Button, Eyebrow, Icon, ProgressBar, TopBar, harga, isRange, tanggalIndo } from "../Components/ui";
+import { useEffect, useMemo, useState } from "react";
+import { Button, Eyebrow, Icon, ProgressBar, TopBar, harga, isRange, tanggalIndo, todayISO } from "../Components/ui";
 
 const API = "/api";
 
@@ -40,6 +40,74 @@ function buildWeekStrip(count = 7) {
     });
 }
 
+/**
+ * Ambil slot satu kapster. Selalu mengembalikan array (aman dari error jaringan).
+ * Bentuk respons backend: { slots: string[] }.
+ */
+async function fetchSlotsForBarber(barberId, serviceId, date) {
+    try {
+        const res = await fetch(
+            `${API}/available-slots?barber_id=${barberId}&service_id=${serviceId}&date=${date}`,
+        );
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data?.slots) ? data.slots : [];
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Coba ENDPOINT BARU satu-request untuk mode "acak": `?all=1&service_id=..&date=..`
+ * yang mengembalikan union slot SEMUA kapster sekaligus.
+ *
+ * Defensif — backend saat ini BELUM tentu mendukung `all=1` (validasi `barber_id`
+ * masih `required`, jadi request ini bisa balas 4xx). Karena itu fungsi ini
+ * mengembalikan `null` bila respons tidak berbentuk yang diharapkan, dan pemanggil
+ * WAJIB fallback ke cara lama (Promise.all per kapster).
+ *
+ * @returns {Promise<{barbersByTime: Record<string, number[]>, slots: string[]}|null>}
+ */
+async function fetchAllSlots(serviceId, date) {
+    try {
+        const res = await fetch(`${API}/available-slots?all=1&service_id=${serviceId}&date=${date}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!Array.isArray(data?.slots)) return null;
+
+        // Bila backend mengirim peta jam -> daftar id kapster, pakai langsung.
+        if (data.barbers_by_time && typeof data.barbers_by_time === "object") {
+            return {
+                barbersByTime: data.barbers_by_time,
+                slots: [...data.slots].sort(),
+            };
+        }
+
+        // Bila hanya union slot (tanpa pemetaan kapster), slot tetap bisa dipilih;
+        // pemilihan kapster konkret ditentukan backend/ di titik booking.
+        return { barbersByTime: {}, slots: [...data.slots].sort() };
+    } catch {
+        return null;
+    }
+}
+
+/** Mode acak cara lama: N request paralel, satu per kapster, lalu gabung per jam. */
+async function fetchSlotsPerBarber(barbers, serviceId, date) {
+    const results = await Promise.all(
+        barbers.map(async (b) => ({
+            barberId: b.id,
+            slots: await fetchSlotsForBarber(b.id, serviceId, date),
+        })),
+    );
+    const barbersByTime = {};
+    results.forEach(({ barberId: id, slots: s }) => {
+        s.forEach((t) => {
+            (barbersByTime[t] ||= []).push(id);
+        });
+    });
+    return { barbersByTime, slots: Object.keys(barbersByTime).sort() };
+}
+
 export default function Booking({ services, barbers }) {
     const [step, setStep] = useState(1);
     const [serviceId, setServiceId] = useState("");
@@ -65,52 +133,57 @@ export default function Booking({ services, barbers }) {
         ? { name: "Bebas Siapa Saja", specialty: "Kapster tercepat yang siap" }
         : barbers.find((b) => String(b.id) === String(barberId));
 
+    // Dependency untuk effect slot: string id kapster yang stabil, bukan array `barbers`.
+    // Array referensi bisa berubah tiap render parent walau isinya sama dan memicu refetch.
+    const barberIdsKey = useMemo(() => barbers.map((b) => b.id).join(","), [barbers]);
+
     useEffect(() => {
         if (step !== 3 || !serviceId || !date) return;
 
+        // Batalkan hasil fetch yang sudah usang (mis. user ganti tanggal/kapster cepat).
+        let cancelled = false;
         setSlotsLoading(true);
         setStartTime("");
 
-        // Mode acak: ambil slot dari SEMUA kapster, gabung, dan catat siapa yang bebas per jam.
-        if (isAnyBarber) {
-            Promise.all(
-                barbers.map((b) =>
-                    fetch(`${API}/available-slots?barber_id=${b.id}&service_id=${serviceId}&date=${date}`)
-                        .then((r) => r.json())
-                        .then((d) => ({ barberId: b.id, slots: d.slots || [] }))
-                        .catch(() => ({ barberId: b.id, slots: [] })),
-                ),
-            )
-                .then((results) => {
-                    const map = {};
-                    results.forEach(({ barberId: id, slots: s }) => {
-                        s.forEach((t) => {
-                            (map[t] ||= []).push(id);
-                        });
-                    });
-                    setSlotBarbers(map);
-                    setSlots(Object.keys(map).sort());
-                })
-                .catch(() => {
-                    setSlotBarbers({});
-                    setSlots([]);
-                })
-                .finally(() => setSlotsLoading(false));
-            return;
-        }
+        const applyResult = ({ barbersByTime, slots }) => {
+            if (cancelled) return;
+            setSlotBarbers(barbersByTime);
+            setSlots(slots);
+        };
 
-        // Mode kapster tetap.
-        fetch(`${API}/available-slots?barber_id=${barberId}&service_id=${serviceId}&date=${date}`)
-            .then((r) => r.json())
-            .then((d) => {
-                setSlots(d.slots || []);
+        const run = async () => {
+            try {
+                // Mode acak: coba SATU request union (`all=1`) dulu untuk menekan beban.
+                if (isAnyBarber) {
+                    const all = await fetchAllSlots(serviceId, date);
+                    if (all) {
+                        applyResult(all);
+                        return;
+                    }
+                    // Fallback: backend belum dukung `all=1` → N request paralel (cara lama).
+                    applyResult(await fetchSlotsPerBarber(barbers, serviceId, date));
+                    return;
+                }
+
+                // Mode kapster tetap.
+                const slots = await fetchSlotsForBarber(barberId, serviceId, date);
+                if (cancelled) return;
+                setSlots(slots);
                 setSlotBarbers({});
-            })
-            .catch(() => setSlots([]))
-            .finally(() => setSlotsLoading(false));
-    }, [step, isAnyBarber, barberId, barbers, serviceId, date]);
+            } finally {
+                if (!cancelled) setSlotsLoading(false);
+            }
+        };
 
-    const todayStr = new Date().toISOString().slice(0, 10);
+        run();
+        return () => {
+            cancelled = true;
+        };
+        // `barberIdsKey` menggantikan `barbers` agar tidak refetch saat referensi array berubah.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step, isAnyBarber, barberId, barberIdsKey, serviceId, date]);
+
+    const todayStr = todayISO();
     const stepLabel = ["Pilih Layanan", "Pilih Kapster", "Pilih Jadwal", "Konfirmasi"][step - 1];
 
     /** Kapster yang dipakai untuk booking: acak di antara yang bebas di jam itu. */
