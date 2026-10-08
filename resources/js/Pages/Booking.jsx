@@ -113,9 +113,17 @@ export default function Booking({ services, barbers }) {
 
     // Maju dari sticky bar — hanya bila prasyarat step terpenuhi.
     const goNext = () => {
-        if (step === 1 && service) setStep(2);
-        else if (step === 2 && barber) setStep(3);
-        else if (step === 3 && startTime) setStep(4);
+        setError("");
+        if (step === 1) {
+            if (service) setStep(2);
+            else setError("Pilih salah satu layanan dulu.");
+        } else if (step === 2) {
+            if (barber) setStep(3);
+            else setError("Pilih kapster dulu.");
+        } else if (step === 3) {
+            if (startTime) setStep(4);
+            else setError("Pilih jam kunjungan dulu.");
+        }
     };
 
     return (
@@ -126,7 +134,10 @@ export default function Booking({ services, barbers }) {
 
             <main className="relative z-10 mx-auto max-w-[720px] px-4 pt-4">
                 {error && (
-                    <div className="glass-card mb-4 rounded-ios border-l-[3px] border-l-rose-500 p-3 text-sm text-rose-600">
+                    <div
+                        role="alert"
+                        className="glass-card sticky top-16 z-40 mb-4 rounded-ios border-l-[3px] border-l-rose-500 p-3 text-sm text-rose-600 shadow-md"
+                    >
                         {error}
                     </div>
                 )}
@@ -134,20 +145,16 @@ export default function Booking({ services, barbers }) {
                 {step === 1 && (
                     <StepLayanan
                         services={services}
-                        onPick={(id) => {
-                            setServiceId(id);
-                            setStep(2);
-                        }}
+                        serviceId={serviceId}
+                        onSelect={setServiceId}
                     />
                 )}
 
                 {step === 2 && (
                     <StepKapster
                         barbers={barbers}
-                        onPick={(id) => {
-                            setBarberId(id);
-                            setStep(3);
-                        }}
+                        barberId={barberId}
+                        onSelect={setBarberId}
                     />
                 )}
 
@@ -212,43 +219,48 @@ export default function Booking({ services, barbers }) {
 }
 
 /* ---------------- STEP 1: LAYANAN ---------------- */
-function StepLayanan({ services, onPick }) {
+function StepLayanan({ services, serviceId, onSelect }) {
     return (
         <section className="rise">
-            <StepTitle no={1} title="Pilih Layanan" note="Pilih paket potong dan perawatan rambut yang Anda inginkan." />
+            <StepTitle no={1} title="Pilih Layanan" note="Pilih paket potong dan perawatan rambut yang Anda inginkan, lalu tekan Lanjut." />
             <div className="space-y-3.5">
-                {services.map((s, i) => (
-                    <button
-                        key={s.id}
-                        onClick={() => onPick(s.id)}
-                        className={`group block w-full rounded-ios p-4 text-left transition-all active:scale-[0.99] ${
-                            i === 0 ? "glass-selected" : "glass-card hover:bg-white/95 hover:shadow-md"
-                        }`}
-                    >
-                        <div className="flex items-start justify-between">
-                            <div className="flex-1 pr-3">
-                                <span className="mb-1 flex items-center gap-1 text-xs font-medium text-ink-mute">
-                                    <Icon name="schedule" size={14} /> {s.duration_minutes} Menit
-                                </span>
-                                <h3 className="text-base font-semibold leading-snug tracking-tight text-ink">
-                                    {s.name}
-                                </h3>
-                                <p className="mt-0.5 text-[13px] leading-snug text-ink-soft">{s.description}</p>
-                                {isRange(s) && (
-                                    <span className="mt-1 block text-[11px] italic text-gold-text">
-                                        *harga tergantung panjang rambut
+                {services.map((s) => {
+                    const selected = String(serviceId) === String(s.id);
+                    return (
+                        <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => onSelect(s.id)}
+                            aria-pressed={selected}
+                            className={`group block w-full rounded-ios p-4 text-left transition-all active:scale-[0.99] ${
+                                selected ? "glass-selected" : "glass-card hover:bg-white/95 hover:shadow-md"
+                            }`}
+                        >
+                            <div className="flex items-start justify-between">
+                                <div className="flex-1 pr-3">
+                                    <span className="mb-1 flex items-center gap-1 text-xs font-medium text-ink-mute">
+                                        <Icon name="schedule" size={14} /> {s.duration_minutes} Menit
                                     </span>
-                                )}
+                                    <h3 className="text-base font-semibold leading-snug tracking-tight text-ink">
+                                        {s.name}
+                                    </h3>
+                                    <p className="mt-0.5 text-[13px] leading-snug text-ink-soft">{s.description}</p>
+                                    {isRange(s) && (
+                                        <span className="mt-1 block text-[11px] italic text-gold-text">
+                                            *harga tergantung panjang rambut
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex shrink-0 flex-col items-end justify-between self-stretch">
+                                    <RadioDot selected={selected} />
+                                    <span className="tnum mt-2 max-w-[130px] text-right font-display text-xl font-bold tracking-tight text-ink">
+                                        {harga(s)}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex shrink-0 flex-col items-end justify-between self-stretch">
-                                <RadioDot selected={i === 0} />
-                                <span className="tnum mt-2 max-w-[130px] text-right font-display text-xl font-bold tracking-tight text-ink">
-                                    {harga(s)}
-                                </span>
-                            </div>
-                        </div>
-                    </button>
-                ))}
+                        </button>
+                    );
+                })}
             </div>
             <div className="glass-card mt-4 flex items-center gap-3 rounded-ios p-3.5 text-ink-soft">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-black/[0.04] bg-black/[0.04] text-gold">
@@ -263,18 +275,24 @@ function StepLayanan({ services, onPick }) {
 }
 
 /* ---------------- STEP 2: KAPSTER ---------------- */
-function StepKapster({ barbers, onPick }) {
+function StepKapster({ barbers, barberId, onSelect }) {
+    const anyId = barbers[0]?.id;
+    const anySelected = String(barberId) === String(anyId);
     return (
         <section className="rise">
             <StepTitle
                 no={2}
                 title="Pilih Kapster"
-                note="Pilih kapster langganan Anda atau pilih otomatis untuk penanganan tercepat."
+                note="Pilih kapster langganan Anda atau pilih acak, lalu tekan Lanjut."
             />
 
             <button
-                onClick={() => onPick(barbers[0]?.id)}
-                className="glass-card mb-4 flex w-full items-center justify-between rounded-ios p-4 text-left transition-all active:scale-[0.99] hover:bg-white/95"
+                type="button"
+                onClick={() => onSelect(anyId)}
+                aria-pressed={anySelected}
+                className={`mb-4 flex w-full items-center justify-between rounded-ios p-4 text-left transition-all active:scale-[0.99] ${
+                    anySelected ? "glass-selected" : "glass-card hover:bg-white/95 hover:shadow-md"
+                }`}
             >
                 <div className="flex items-center gap-3.5">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-black/[0.05]">
@@ -287,6 +305,7 @@ function StepKapster({ barbers, onPick }) {
                         <p className="mt-0.5 text-xs text-ink-soft">Penanganan tercepat oleh kapster yang pertama siap</p>
                     </div>
                 </div>
+                <RadioDot selected={anySelected} />
             </button>
 
             <div className="mb-2 flex items-center justify-between px-0.5">
@@ -295,27 +314,34 @@ function StepKapster({ barbers, onPick }) {
             </div>
 
             <div className="space-y-3">
-                {barbers.map((b) => (
-                    <button
-                        key={b.id}
-                        onClick={() => onPick(b.id)}
-                        className="glass-card block w-full rounded-ios p-4 text-left transition-all active:scale-[0.99] hover:bg-white/95"
-                    >
-                        <div className="flex items-start justify-between">
-                            <div className="space-y-0.5">
-                                <h2 className="text-base font-bold tracking-tight text-ink">{b.name}</h2>
-                                <p className="text-xs font-semibold text-gold-text">{b.specialty}</p>
+                {barbers.map((b) => {
+                    const selected = String(barberId) === String(b.id);
+                    return (
+                        <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => onSelect(b.id)}
+                            aria-pressed={selected}
+                            className={`block w-full rounded-ios p-4 text-left transition-all active:scale-[0.99] ${
+                                selected ? "glass-selected" : "glass-card hover:bg-white/95 hover:shadow-md"
+                            }`}
+                        >
+                            <div className="flex items-start justify-between">
+                                <div className="space-y-0.5">
+                                    <h2 className="text-base font-bold tracking-tight text-ink">{b.name}</h2>
+                                    <p className="text-xs font-semibold text-gold-text">{b.specialty}</p>
+                                </div>
+                                <RadioDot selected={selected} />
                             </div>
-                            <RadioDot selected={false} />
-                        </div>
-                        <div className="mt-2.5 flex items-center justify-between border-t border-black/[0.06] pt-2.5">
-                            <span className="text-xs font-medium text-ink-soft">Siap Melayani</span>
-                            <span className="flex items-center gap-1.5 text-xs font-bold text-ink">
-                                <span className="h-1.5 w-1.5 rounded-full bg-gold" /> Aktif
-                            </span>
-                        </div>
-                    </button>
-                ))}
+                            <div className="mt-2.5 flex items-center justify-between border-t border-black/[0.06] pt-2.5">
+                                <span className="text-xs font-medium text-ink-soft">Siap Melayani</span>
+                                <span className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-gold" /> Aktif
+                                </span>
+                            </div>
+                        </button>
+                    );
+                })}
             </div>
         </section>
     );
@@ -663,8 +689,8 @@ function SummaryRow({ label, value, sub }) {
 
 /**
  * Bar melayang bawah: ringkasan pilihan + tombol maju/mundur.
- * `onNext` memajukan step; tombol nonaktif sampai prasyarat step terpenuhi
- * (step 1 butuh layanan, step 2 butuh kapster, step 3 butuh jam).
+ * `onNext` memajukan step. Tombol selalu bisa diklik agar bisa memberi
+ * umpan balik bila prasyarat step belum dipenuhi.
  */
 function StickySummary({ step, service, barber, date, startTime, onBack, onNext }) {
     const nextLabel = ["", "Lanjut Pilih Kapster", "Lanjut Pilih Jadwal", "Lanjut ke Konfirmasi", ""][step];
@@ -696,7 +722,9 @@ function StickySummary({ step, service, barber, date, startTime, onBack, onNext 
                                         <span className="tnum">{startTime} WIB</span>
                                     </>
                                 ) : (
-                                    <span className="font-medium text-ink-soft">{nextLabel || "Lengkapi pilihan"}</span>
+                                    <span className="font-medium text-ink-soft">
+                                        {canNext ? nextLabel : "Pilih salah satu"}
+                                    </span>
                                 )}
                             </div>
                             {service && (
@@ -709,10 +737,14 @@ function StickySummary({ step, service, barber, date, startTime, onBack, onNext 
                             <button
                                 type="button"
                                 onClick={onNext}
-                                disabled={!canNext}
-                                className="shrink-0 rounded-xl bg-ink px-4 py-3 text-xs font-semibold text-white transition-all active:scale-[0.97] hover:bg-black disabled:cursor-not-allowed disabled:opacity-45"
+                                aria-disabled={!canNext}
+                                className={`shrink-0 rounded-xl px-4 py-3 text-xs font-semibold transition-all active:scale-[0.97] ${
+                                    canNext
+                                        ? "bg-ink text-white hover:bg-black"
+                                        : "bg-black/10 text-ink-soft"
+                                }`}
                             >
-                                {canNext ? nextLabel : "Pilih dulu"}
+                                {nextLabel}
                             </button>
                         )}
                     </div>
