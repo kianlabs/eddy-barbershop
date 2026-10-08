@@ -58,37 +58,86 @@ export default function Booking({ services, barbers }) {
     const service = services.find((s) => String(s.id) === String(serviceId));
     // Pilihan "acak" disimpan sebagai sentinel "any" agar tidak ikut mencentang kapster mana pun.
     const isAnyBarber = barberId === "any";
-    // Nilai barber untuk operasi teknis (fetch slot, submit): bila "any", pakai kapster pertama.
-    const resolvedBarberId = isAnyBarber ? barbers[0]?.id : barberId;
+    // Peta jam -> daftar id kapster yang bebas pada jam itu (dipakai mode acak).
+    const [slotBarbers, setSlotBarbers] = useState({});
+    // Nama kapster terpilih untuk ditampilkan — mode acak disembunyikan.
     const barber = isAnyBarber
         ? { name: "Bebas Siapa Saja", specialty: "Kapster tercepat yang siap" }
         : barbers.find((b) => String(b.id) === String(barberId));
 
     useEffect(() => {
-        if (step === 3 && resolvedBarberId && serviceId && date) {
-            setSlotsLoading(true);
-            setStartTime("");
-            fetch(`${API}/available-slots?barber_id=${resolvedBarberId}&service_id=${serviceId}&date=${date}`)
-                .then((r) => r.json())
-                .then((d) => setSlots(d.slots || []))
-                .catch(() => setSlots([]))
+        if (step !== 3 || !serviceId || !date) return;
+
+        setSlotsLoading(true);
+        setStartTime("");
+
+        // Mode acak: ambil slot dari SEMUA kapster, gabung, dan catat siapa yang bebas per jam.
+        if (isAnyBarber) {
+            Promise.all(
+                barbers.map((b) =>
+                    fetch(`${API}/available-slots?barber_id=${b.id}&service_id=${serviceId}&date=${date}`)
+                        .then((r) => r.json())
+                        .then((d) => ({ barberId: b.id, slots: d.slots || [] }))
+                        .catch(() => ({ barberId: b.id, slots: [] })),
+                ),
+            )
+                .then((results) => {
+                    const map = {};
+                    results.forEach(({ barberId: id, slots: s }) => {
+                        s.forEach((t) => {
+                            (map[t] ||= []).push(id);
+                        });
+                    });
+                    setSlotBarbers(map);
+                    setSlots(Object.keys(map).sort());
+                })
+                .catch(() => {
+                    setSlotBarbers({});
+                    setSlots([]);
+                })
                 .finally(() => setSlotsLoading(false));
+            return;
         }
-    }, [step, resolvedBarberId, serviceId, date]);
+
+        // Mode kapster tetap.
+        fetch(`${API}/available-slots?barber_id=${barberId}&service_id=${serviceId}&date=${date}`)
+            .then((r) => r.json())
+            .then((d) => {
+                setSlots(d.slots || []);
+                setSlotBarbers({});
+            })
+            .catch(() => setSlots([]))
+            .finally(() => setSlotsLoading(false));
+    }, [step, isAnyBarber, barberId, barbers, serviceId, date]);
 
     const todayStr = new Date().toISOString().slice(0, 10);
     const stepLabel = ["Pilih Layanan", "Pilih Kapster", "Pilih Jadwal", "Konfirmasi"][step - 1];
 
+    /** Kapster yang dipakai untuk booking: acak di antara yang bebas di jam itu. */
+    function pickBarberIdForBooking() {
+        if (!isAnyBarber) return barberId;
+        const candidates = slotBarbers[startTime] || [];
+        if (candidates.length === 0) return null;
+        return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
     async function submit(e) {
         e.preventDefault();
         setError("");
+
+        const bookingBarberId = pickBarberIdForBooking();
+        if (!bookingBarberId) {
+            setError("Tidak ada kapster yang bebas di jam ini. Pilih jam lain.");
+            return;
+        }
+
         setSubmitting(true);
         try {
             const res = await fetch(`${API}/bookings`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Accept: "application/json" },
                 body: JSON.stringify({
-                    barber_id: resolvedBarberId,
+                    barber_id: bookingBarberId,
                     service_id: serviceId,
                     date,
                     start_time: startTime,
@@ -173,10 +222,8 @@ export default function Booking({ services, barbers }) {
                         todayStr={todayStr}
                         slots={slots}
                         loading={slotsLoading}
-                        onPick={(t) => {
-                            setStartTime(t);
-                            setStep(4);
-                        }}
+                        startTime={startTime}
+                        onSelect={setStartTime}
                     />
                 )}
 
@@ -197,7 +244,7 @@ export default function Booking({ services, barbers }) {
                     />
                 )}
 
-                {step === 5 && result && <StepSukses result={result} />}
+                {step === 5 && result && <StepSukses result={result} anonymizeBarber={isAnyBarber} />}
 
                 {step > 1 && step < 4 && (
                     <button
@@ -353,7 +400,7 @@ function StepKapster({ barbers, barberId, onSelect }) {
 }
 
 /* ---------------- STEP 3: JADWAL ---------------- */
-function StepJadwal({ service, barber, date, setDate, todayStr, slots, loading, onPick }) {
+function StepJadwal({ service, barber, date, setDate, todayStr, slots, loading, startTime, onSelect }) {
     const groups = groupSlots(slots);
     const week = buildWeekStrip(7);
     return (
@@ -463,15 +510,24 @@ function StepJadwal({ service, barber, date, setDate, todayStr, slots, loading, 
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-3 gap-2.5">
-                                    {times.map((t) => (
-                                        <button
-                                            key={t}
-                                            onClick={() => onPick(t)}
-                                            className="glass-card tnum rounded-xl p-3 text-center text-sm font-medium text-ink transition-all active:scale-95 hover:bg-white"
-                                        >
-                                            {t}
-                                        </button>
-                                    ))}
+                                    {times.map((t) => {
+                                        const selected = startTime === t;
+                                        return (
+                                            <button
+                                                key={t}
+                                                type="button"
+                                                onClick={() => onSelect(t)}
+                                                aria-pressed={selected}
+                                                className={`tnum rounded-xl p-3 text-center text-sm font-semibold transition-all active:scale-95 ${
+                                                    selected
+                                                        ? "bg-ink text-white shadow-md ring-2 ring-gold/40"
+                                                        : "glass-card text-ink hover:bg-white"
+                                                }`}
+                                            >
+                                                {t}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )
@@ -623,7 +679,7 @@ function StepKonfirmasi({
 }
 
 /* ---------------- STEP 5: SUKSES ---------------- */
-function StepSukses({ result }) {
+function StepSukses({ result, anonymizeBarber = false }) {
     return (
         <section className="rise py-10 text-center">
             <div className="glass-card mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full">
@@ -632,10 +688,16 @@ function StepSukses({ result }) {
             <Eyebrow>Booking Terkonfirmasi</Eyebrow>
             <h2 className="mt-3 font-display text-4xl uppercase tracking-wide text-ink">Sampai Jumpa</h2>
             <p className="mx-auto mt-5 max-w-md text-base leading-relaxed text-ink-soft">
-                {result.service?.name} dengan {result.barber?.name} pada {tanggalIndo(result.date)} jam{" "}
+                {result.service?.name}
+                {anonymizeBarber ? "" : ` dengan ${result.barber?.name}`} pada {tanggalIndo(result.date)} jam{" "}
                 <span className="tnum font-semibold text-ink">{String(result.start_time).slice(0, 5)}</span>.
                 Tunjukkan halaman ini saat datang.
             </p>
+            {anonymizeBarber && (
+                <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-ink-soft">
+                    Kapster akan ditentukan saat Anda tiba — Anda akan dilayani oleh kapster yang siap lebih dulu.
+                </p>
+            )}
             <Button as="a" href="/" variant="secondary" className="mt-10">
                 Kembali ke Beranda
             </Button>
