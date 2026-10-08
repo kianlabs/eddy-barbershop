@@ -15,8 +15,8 @@ class ScheduleFactory extends Factory
     public function definition(): array
     {
         return [
-            // barber_id selalu di-set eksplisit oleh pemanggil (model tidak
-            // memakai trait HasFactory, jadi `Barber::factory()` tidak tersedia).
+            // Selalu di-set eksplisit oleh pemanggil (model tidak memakai
+            // trait HasFactory, jadi `Barber::factory()` tidak tersedia).
             'barber_id' => null,
             'day_of_week' => 1, // Senin
             'start_time' => '10:00:00',
@@ -25,16 +25,25 @@ class ScheduleFactory extends Factory
         ];
     }
 
+    /**
+     * Tetapkan jadwal ke kapster tertentu (berdasarkan id).
+     */
     public function forBarberId(int $barberId): static
     {
         return $this->state(fn (array $attributes) => ['barber_id' => $barberId]);
     }
 
+    /**
+     * Tetapkan hari kerja (0=Minggu .. 6=Sabtu).
+     */
     public function day(int $dayOfWeek): static
     {
         return $this->state(fn (array $attributes) => ['day_of_week' => $dayOfWeek]);
     }
 
+    /**
+     * Jam kerja kapster.
+     */
     public function hours(string $start, string $end): static
     {
         return $this->state(fn (array $attributes) => [
