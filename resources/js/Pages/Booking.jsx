@@ -56,19 +56,25 @@ export default function Booking({ services, barbers }) {
     const [submitting, setSubmitting] = useState(false);
 
     const service = services.find((s) => String(s.id) === String(serviceId));
-    const barber = barbers.find((b) => String(b.id) === String(barberId));
+    // Pilihan "acak" disimpan sebagai sentinel "any" agar tidak ikut mencentang kapster mana pun.
+    const isAnyBarber = barberId === "any";
+    // Nilai barber untuk operasi teknis (fetch slot, submit): bila "any", pakai kapster pertama.
+    const resolvedBarberId = isAnyBarber ? barbers[0]?.id : barberId;
+    const barber = isAnyBarber
+        ? { name: "Bebas Siapa Saja", specialty: "Kapster tercepat yang siap" }
+        : barbers.find((b) => String(b.id) === String(barberId));
 
     useEffect(() => {
-        if (step === 3 && barberId && serviceId && date) {
+        if (step === 3 && resolvedBarberId && serviceId && date) {
             setSlotsLoading(true);
             setStartTime("");
-            fetch(`${API}/available-slots?barber_id=${barberId}&service_id=${serviceId}&date=${date}`)
+            fetch(`${API}/available-slots?barber_id=${resolvedBarberId}&service_id=${serviceId}&date=${date}`)
                 .then((r) => r.json())
                 .then((d) => setSlots(d.slots || []))
                 .catch(() => setSlots([]))
                 .finally(() => setSlotsLoading(false));
         }
-    }, [step, barberId, serviceId, date]);
+    }, [step, resolvedBarberId, serviceId, date]);
 
     const todayStr = new Date().toISOString().slice(0, 10);
     const stepLabel = ["Pilih Layanan", "Pilih Kapster", "Pilih Jadwal", "Konfirmasi"][step - 1];
@@ -82,7 +88,7 @@ export default function Booking({ services, barbers }) {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Accept: "application/json" },
                 body: JSON.stringify({
-                    barber_id: barberId,
+                    barber_id: resolvedBarberId,
                     service_id: serviceId,
                     date,
                     start_time: startTime,
@@ -276,8 +282,7 @@ function StepLayanan({ services, serviceId, onSelect }) {
 
 /* ---------------- STEP 2: KAPSTER ---------------- */
 function StepKapster({ barbers, barberId, onSelect }) {
-    const anyId = barbers[0]?.id;
-    const anySelected = String(barberId) === String(anyId);
+    const anySelected = barberId === "any";
     return (
         <section className="rise">
             <StepTitle
@@ -288,7 +293,7 @@ function StepKapster({ barbers, barberId, onSelect }) {
 
             <button
                 type="button"
-                onClick={() => onSelect(anyId)}
+                onClick={() => onSelect("any")}
                 aria-pressed={anySelected}
                 className={`mb-4 flex w-full items-center justify-between rounded-ios p-4 text-left transition-all active:scale-[0.99] ${
                     anySelected ? "glass-selected" : "glass-card hover:bg-white/95 hover:shadow-md"
