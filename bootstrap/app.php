@@ -20,6 +20,13 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Vercel men-*terminate* TLS di edge, lalu meneruskan request ke PHP
+        // lewat proxy internal. Tanpa baris ini Laravel mengira request datang
+        // sebagai HTTP biasa, sehingga asset()/url() menghasilkan "http://..."
+        // di halaman HTTPS — browser memblokirnya sebagai mixed content dan
+        // SPA (Inertia) gagal hydrate (layar putih).
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);
